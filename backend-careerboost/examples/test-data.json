@@ -1,0 +1,212 @@
+{
+  "users": {
+    "candidate": {
+      "role": "CANDIDATE",
+      "name": "Marie Dubois",
+      "email": "marie.dubois@example.com",
+      "password": "password123",
+      "phone": "0123456789",
+      "city": "Paris",
+      "latitude": 48.8566,
+      "longitude": 2.3522
+    },
+    "recruiter": {
+      "role": "RECRUITER",
+      "name": "Pierre Martin",
+      "email": "pierre.martin@techcorp.com",
+      "password": "password123",
+      "phone": "0987654321",
+      "city": "Lyon",
+      "latitude": 45.7640,
+      "longitude": 4.8357
+    },
+    "admin": {
+      "role": "ADMIN",
+      "name": "Admin CareerBoost",
+      "email": "admin@careerboost.com",
+      "password": "admin123",
+      "phone": "0100000000",
+      "city": "Paris"
+    }
+  },
+  "companies": {
+    "techcorp": {
+      "name": "TechCorp Solutions",
+      "siren": "123456789",
+      "domain": "techcorp.com",
+      "sector": "Informatique",
+      "size_employees": 150,
+      "logo_url": "https://example.com/logo-techcorp.png"
+    },
+    "startup": {
+      "name": "InnovateLab",
+      "siren": "987654321",
+      "domain": "innovatelab.fr",
+      "sector": "Startup Tech",
+      "size_employees": 25,
+      "logo_url": "https://example.com/logo-innovatelab.png"
+    }
+  },
+  "skills": [
+    {
+      "slug": "javascript",
+      "display_name": "JavaScript"
+    },
+    {
+      "slug": "react",
+      "display_name": "React"
+    },
+    {
+      "slug": "nodejs",
+      "display_name": "Node.js"
+    },
+    {
+      "slug": "python",
+      "display_name": "Python"
+    },
+    {
+      "slug": "sql",
+      "display_name": "SQL"
+    },
+    {
+      "slug": "docker",
+      "display_name": "Docker"
+    },
+    {
+      "slug": "aws",
+      "display_name": "Amazon Web Services"
+    },
+    {
+      "slug": "git",
+      "display_name": "Git"
+    },
+    {
+      "slug": "agile",
+      "display_name": "Méthodes Agiles"
+    },
+    {
+      "slug": "typescript",
+      "display_name": "TypeScript"
+    }
+  ],
+  "candidate_profile": {
+    "title": "Développeur Full Stack JavaScript",
+    "summary": "Développeur passionné avec 3 ans d'expérience dans le développement web moderne. Spécialisé en React/Node.js avec une forte appétence pour les nouvelles technologies.",
+    "experience_years": 3,
+    "mobility_km": 50,
+    "preferred_contracts": ["CDI", "CDD"]
+  },
+  "educations": [
+    {
+      "school": "École Supérieure d'Informatique",
+      "degree": "Master",
+      "field": "Informatique et Systèmes d'Information",
+      "start_date": "2018-09-01",
+      "end_date": "2020-06-30",
+      "description": "Formation complète en développement logiciel, bases de données et gestion de projet."
+    },
+    {
+      "school": "IUT Informatique",
+      "degree": "DUT",
+      "field": "Informatique",
+      "start_date": "2016-09-01",
+      "end_date": "2018-06-30",
+      "description": "Formation technique en programmation et systèmes informatiques."
+    }
+  ],
+  "experiences": [
+    {
+      "company": "WebAgency Pro",
+      "role_title": "Développeur Full Stack",
+      "start_date": "2021-03-01",
+      "end_date": null,
+      "description": "Développement d'applications web avec React/Node.js. Participation à tous les aspects du cycle de développement, de la conception à la mise en production."
+    },
+    {
+      "company": "StartupTech",
+      "role_title": "Développeur Frontend",
+      "start_date": "2020-07-01",
+      "end_date": "2021-02-28",
+      "description": "Développement d'interfaces utilisateur modernes avec React. Collaboration étroite avec l'équipe UX/UI."
+    }
+  ],
+  "candidate_skills": [
+    {
+      "skill_slug": "javascript",
+      "proficiency_level": 4,
+      "last_used_on": "2024-01-15"
+    },
+    {
+      "skill_slug": "react",
+      "proficiency_level": 4,
+      "last_used_on": "2024-01-15"
+    },
+    {
+      "skill_slug": "nodejs",
+      "proficiency_level": 3,
+      "last_used_on": "2024-01-10"
+    },
+    {
+      "skill_slug": "sql",
+      "proficiency_level": 3,
+      "last_used_on": "2024-01-05"
+    },
+    {
+      "skill_slug": "git",
+      "proficiency_level": 4,
+      "last_used_on": "2024-01-15"
+    }
+  ],
+  "job_offers": [
+    {
+      "title": "Développeur Full Stack React/Node.js",
+      "description": "Nous recherchons un développeur full stack expérimenté pour rejoindre notre équipe de développement. Vous travaillerez sur des projets innovants utilisant les dernières technologies web.\n\nMissions :\n- Développement d'applications web avec React et Node.js\n- Participation à la conception technique\n- Collaboration avec l'équipe produit\n- Maintenance et évolution des applications existantes\n\nProfil recherché :\n- 2+ ans d'expérience en développement web\n- Maîtrise de JavaScript, React, Node.js\n- Connaissance des bases de données SQL\n- Esprit d'équipe et autonomie",
+      "city": "Paris",
+      "latitude": 48.8566,
+      "longitude": 2.3522,
+      "contract_type": "CDI",
+      "experience_min": 2,
+      "salary_min": 40000,
+      "salary_max": 55000,
+      "currency": "EUR",
+      "required_skills": ["javascript", "react", "nodejs"],
+      "preferred_skills": ["sql", "git", "docker"]
+    },
+    {
+      "title": "Développeur Python Backend",
+      "description": "Rejoignez notre équipe backend pour développer des APIs robustes et scalables.\n\nMissions :\n- Développement d'APIs REST avec Python\n- Optimisation des performances\n- Intégration avec des services tiers\n- Tests unitaires et d'intégration\n\nProfil recherché :\n- 3+ ans d'expérience en Python\n- Connaissance des frameworks web (Django, FastAPI)\n- Expérience avec les bases de données\n- Maîtrise de Git et des méthodes Agiles",
+      "city": "Lyon",
+      "latitude": 45.7640,
+      "longitude": 4.8357,
+      "contract_type": "CDI",
+      "experience_min": 3,
+      "salary_min": 45000,
+      "salary_max": 60000,
+      "currency": "EUR",
+      "required_skills": ["python", "sql"],
+      "preferred_skills": ["docker", "aws", "git"]
+    }
+  ],
+  "test_scenarios": {
+    "complete_workflow": {
+      "description": "Scénario complet de test de l'API",
+      "steps": [
+        "1. Créer un compte admin",
+        "2. Créer des compétences via /skills/batch",
+        "3. Créer un compte recruteur",
+        "4. Créer une entreprise",
+        "5. Valider l'entreprise (admin)",
+        "6. Créer des offres d'emploi",
+        "7. Créer un compte candidat",
+        "8. Compléter le profil candidat",
+        "9. Ajouter formations et expériences",
+        "10. Ajouter des compétences",
+        "11. Rechercher des offres",
+        "12. Postuler à une offre",
+        "13. Consulter les candidatures (recruteur)",
+        "14. Changer le statut d'une candidature",
+        "15. Consulter le tableau de bord admin"
+      ]
+    }
+  }
+}
