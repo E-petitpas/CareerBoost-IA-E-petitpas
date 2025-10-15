@@ -96,7 +96,7 @@ const Applications: React.FC = () => {
     }
   };
 
-  const filteredApplications = applications.filter(app => 
+  const filteredApplications = applications.filter(app =>
     selectedStatus === 'all' || app.status === selectedStatus
   );
 
@@ -120,7 +120,7 @@ const Applications: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
@@ -130,10 +130,10 @@ const Applications: React.FC = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-600">{error}</p>
-          <button 
+          <button
             onClick={loadApplications}
             className="mt-2 btn-primary btn-sm"
           >
@@ -145,7 +145,7 @@ const Applications: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Mes candidatures</h1>
         <p className="text-gray-600">Suivez l'évolution de vos candidatures</p>
@@ -156,11 +156,10 @@ const Applications: React.FC = () => {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setSelectedStatus('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              selectedStatus === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedStatus === 'all'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
           >
             Toutes ({applications.length})
           </button>
@@ -170,11 +169,10 @@ const Applications: React.FC = () => {
               <button
                 key={status}
                 onClick={() => setSelectedStatus(status)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  selectedStatus === status
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedStatus === status
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 {getStatusLabel(status)} ({count})
               </button>
@@ -191,7 +189,7 @@ const Applications: React.FC = () => {
             {selectedStatus === 'all' ? 'Aucune candidature' : `Aucune candidature ${getStatusLabel(selectedStatus).toLowerCase()}`}
           </h3>
           <p className="text-gray-500">
-            {selectedStatus === 'all' 
+            {selectedStatus === 'all'
               ? 'Commencez par postuler à des offres qui vous intéressent'
               : 'Aucune candidature avec ce statut'
             }
@@ -207,12 +205,12 @@ const Applications: React.FC = () => {
                     <h3 className="text-xl font-semibold text-gray-900">
                       {application.job_offers?.title || 'Offre supprimée'}
                     </h3>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(application.status)}`}>
+                    <span className={`flex px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(application.status)}`}>
                       {getStatusIcon(application.status)}
                       <span className="ml-1">{getStatusLabel(application.status)}</span>
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                     <div className="flex items-center gap-1">
                       <BuildingOfficeIcon className="h-4 w-4" />
@@ -232,11 +230,10 @@ const Applications: React.FC = () => {
                     <div className="mb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-700">Score de matching:</span>
-                        <span className={`px-2 py-1 rounded text-sm font-medium ${
-                          application.score >= 90 ? 'bg-green-100 text-green-800' :
+                        <span className={`px-2 py-1 rounded text-sm font-medium ${application.score >= 90 ? 'bg-green-100 text-green-800' :
                           application.score >= 70 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                            'bg-gray-100 text-gray-800'
+                          }`}>
                           {application.score}%
                         </span>
                       </div>
