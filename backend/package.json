@@ -7,6 +7,8 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "init": "node src/scripts/init.js",
+    "migrate:supabase": "node src/scripts/migrate.js",
+    "migrate:status": "node src/scripts/migrate.js status",
     "create-admin": "node src/scripts/createAdmin.js",
     "seed-skills": "node src/scripts/seedSkills.js",
     "reject-company": "node src/scripts/rejectCompany.js",
