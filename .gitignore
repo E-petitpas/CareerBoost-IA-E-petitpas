@@ -1,0 +1,65 @@
+# Fichiers d'environnement (contiennent des clés secrètes)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dépendances Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Fichiers de build
+dist/
+build/
+.next/
+out/
+
+# Fichiers temporaires
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+
+# Logs
+logs/
+*.log
+
+# Fichiers uploadés
+uploads/
+public/uploads/
+
+# Fichiers de base de données locaux
+*.sqlite
+*.db
+
+# Fichiers IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Fichiers de test
+.coverage
+htmlcov/
+
+# Fichiers de sauvegarde
+*.bak
+*.backup
+
+# Fichiers temporaires de migration
+migration_backup/
