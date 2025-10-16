@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './components/common/ToastContainer';
 import Layout from './components/Layout/Layout';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import ProtectedRecruiterRoute from './components/ProtectedRecruiterRoute';
@@ -29,6 +30,7 @@ import CreateOffer from './pages/Recruiter/CreateOffer';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import CompanyValidation from './pages/Admin/CompanyValidation';
 import AdminOffers from './pages/Admin/AdminOffers';
+import AdminSkills from './pages/Admin/AdminSkills';
 import FranceTravailOffers from './pages/Admin/FranceTravailOffers';
 
 // Pages utilitaires
@@ -38,130 +40,140 @@ import Unauthorized from './pages/Unauthorized';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            {/* Routes publiques */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/set-password" element={<SetPassword />} />
+      <ToastProvider>
+        <Router>
+          <div className="App">
+            <Routes>
+              {/* Routes publiques */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/set-password" element={<SetPassword />} />
 
-            {/* Routes protégées - Toutes */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Dashboard />
-                </Layout>
-              </ProtectedRoute>
-            } />
-
-            {/* Routes candidat */}
-            <Route path="/offers" element={
-              <ProtectedRoute roles={['CANDIDATE']}>
-                <Layout>
-                  <OfferSearch />
-                </Layout>
-              </ProtectedRoute>
-            } />
-
-            <Route path="/applications" element={
-              <ProtectedRoute roles={['CANDIDATE']}>
-                <Layout>
-                  <Applications />
-                </Layout>
-              </ProtectedRoute>
-            } />
-
-            <Route path="/profile" element={
-              <ProtectedRoute roles={['CANDIDATE']}>
-                <Layout>
-                  <CandidateProfile />
-                </Layout>
-              </ProtectedRoute>
-            } />
-
-            {/* Routes recruteur */}
-            <Route path="/recruiter/dashboard" element={
-              <ProtectedRoute roles={['RECRUITER']}>
-                <ProtectedRecruiterRoute>
+              {/* Routes protégées - Toutes */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
                   <Layout>
-                    <RecruiterDashboard />
+                    <Dashboard />
                   </Layout>
-                </ProtectedRecruiterRoute>
-              </ProtectedRoute>
-            } />
+                </ProtectedRoute>
+              } />
 
-            <Route path="/recruiter/offers" element={
-              <ProtectedRoute roles={['RECRUITER']}>
-                <ProtectedRecruiterRoute>
+              {/* Routes candidat */}
+              <Route path="/offers" element={
+                <ProtectedRoute roles={['CANDIDATE']}>
                   <Layout>
-                    <RecruiterOffers />
+                    <OfferSearch />
                   </Layout>
-                </ProtectedRecruiterRoute>
-              </ProtectedRoute>
-            } />
+                </ProtectedRoute>
+              } />
 
-            <Route path="/recruiter/offers/new" element={
-              <ProtectedRoute roles={['RECRUITER']}>
-                <ProtectedRecruiterRoute>
+              <Route path="/applications" element={
+                <ProtectedRoute roles={['CANDIDATE']}>
                   <Layout>
-                    <CreateOffer />
+                    <Applications />
                   </Layout>
-                </ProtectedRecruiterRoute>
-              </ProtectedRoute>
-            } />
+                </ProtectedRoute>
+              } />
 
-            <Route path="/recruiter/applications" element={
-              <ProtectedRoute roles={['RECRUITER']}>
-                <ProtectedRecruiterRoute>
+              <Route path="/profile" element={
+                <ProtectedRoute roles={['CANDIDATE']}>
                   <Layout>
-                    <RecruiterApplications />
+                    <CandidateProfile />
                   </Layout>
-                </ProtectedRecruiterRoute>
-              </ProtectedRoute>
-            } />
+                </ProtectedRoute>
+              } />
 
-            {/* Routes admin */}
-            <Route path="/admin/dashboard" element={
-              <ProtectedRoute roles={['ADMIN']}>
-                <Layout>
-                  <AdminDashboard />
-                </Layout>
-              </ProtectedRoute>
-            } />
+              {/* Routes recruteur */}
+              <Route path="/recruiter/dashboard" element={
+                <ProtectedRoute roles={['RECRUITER']}>
+                  <ProtectedRecruiterRoute>
+                    <Layout>
+                      <RecruiterDashboard />
+                    </Layout>
+                  </ProtectedRecruiterRoute>
+                </ProtectedRoute>
+              } />
 
-            <Route path="/admin/companies" element={
-              <ProtectedRoute roles={['ADMIN']}>
-                <Layout>
-                  <CompanyValidation />
-                </Layout>
-              </ProtectedRoute>
-            } />
+              <Route path="/recruiter/offers" element={
+                <ProtectedRoute roles={['RECRUITER']}>
+                  <ProtectedRecruiterRoute>
+                    <Layout>
+                      <RecruiterOffers />
+                    </Layout>
+                  </ProtectedRecruiterRoute>
+                </ProtectedRoute>
+              } />
 
-            <Route path="/admin/offers" element={
-              <ProtectedRoute roles={['ADMIN']}>
-                <Layout>
-                  <AdminOffers />
-                </Layout>
-              </ProtectedRoute>
-            } />
+              <Route path="/recruiter/offers/new" element={
+                <ProtectedRoute roles={['RECRUITER']}>
+                  <ProtectedRecruiterRoute>
+                    <Layout>
+                      <CreateOffer />
+                    </Layout>
+                  </ProtectedRecruiterRoute>
+                </ProtectedRoute>
+              } />
 
-            <Route path="/admin/france-travail" element={
-              <ProtectedRoute roles={['ADMIN']}>
-                <Layout>
-                  <FranceTravailOffers />
-                </Layout>
-              </ProtectedRoute>
-            } />
+              <Route path="/recruiter/applications" element={
+                <ProtectedRoute roles={['RECRUITER']}>
+                  <ProtectedRecruiterRoute>
+                    <Layout>
+                      <RecruiterApplications />
+                    </Layout>
+                  </ProtectedRecruiterRoute>
+                </ProtectedRoute>
+              } />
 
-            {/* Pages d'erreur */}
-            <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="/404" element={<NotFound />} />
-            <Route path="*" element={<Navigate to="/404" replace />} />
-          </Routes>
-        </div>
-      </Router>
+              {/* Routes admin */}
+              <Route path="/admin/dashboard" element={
+                <ProtectedRoute roles={['ADMIN']}>
+                  <Layout>
+                    <AdminDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/companies" element={
+                <ProtectedRoute roles={['ADMIN']}>
+                  <Layout>
+                    <CompanyValidation />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/offers" element={
+                <ProtectedRoute roles={['ADMIN']}>
+                  <Layout>
+                    <AdminOffers />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/skills" element={
+                <ProtectedRoute roles={['ADMIN']}>
+                  <Layout>
+                    <AdminSkills />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              <Route path="/admin/france-travail" element={
+                <ProtectedRoute roles={['ADMIN']}>
+                  <Layout>
+                    <FranceTravailOffers />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+
+              {/* Pages d'erreur */}
+              <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="/404" element={<NotFound />} />
+              <Route path="*" element={<Navigate to="/404" replace />} />
+            </Routes>
+          </div>
+        </Router>
+      </ToastProvider>
     </AuthProvider>
   );
 }
