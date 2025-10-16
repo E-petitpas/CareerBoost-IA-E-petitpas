@@ -93,6 +93,13 @@ const AdminDashboard: React.FC = () => {
       color: 'bg-green-500'
     },
     {
+      title: 'Gérer les compétences',
+      description: 'Référentiel de compétences',
+      icon: ChartBarIcon,
+      action: () => navigate('/admin/skills'),
+      color: 'bg-indigo-500'
+    },
+    {
       title: 'Rapports',
       description: 'Générer des rapports',
       icon: ChartBarIcon,
@@ -226,9 +233,8 @@ const AdminDashboard: React.FC = () => {
               <button
                 key={index}
                 onClick={action.action}
-                className={`relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow ${
-                  action.urgent ? 'ring-2 ring-yellow-400' : ''
-                }`}
+                className={`relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg shadow hover:shadow-md transition-shadow ${action.urgent ? 'ring-2 ring-yellow-400' : ''
+                  }`}
               >
                 <div>
                   <span className={`rounded-lg inline-flex p-3 ${action.color} text-white`}>

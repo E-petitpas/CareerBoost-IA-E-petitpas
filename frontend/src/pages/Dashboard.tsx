@@ -81,11 +81,11 @@ const Dashboard: React.FC = () => {
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
     let greeting = 'Bonjour';
-    
+
     if (hour < 12) greeting = 'Bonjour';
     else if (hour < 18) greeting = 'Bon après-midi';
     else greeting = 'Bonsoir';
-    
+
     return `${greeting}, ${user?.name}`;
   };
 
@@ -166,18 +166,25 @@ const Dashboard: React.FC = () => {
           color: 'bg-green-500',
         },
         {
+          title: 'Compétences',
+          description: 'Gérer le référentiel de compétences',
+          icon: ChartBarIcon,
+          action: () => navigate('/admin/skills'),
+          color: 'bg-indigo-500',
+        },
+        {
           title: 'France Travail',
           description: 'Gérer les offres France Travail',
           icon: BriefcaseIcon,
           action: () => navigate('/admin/france-travail'),
-          color: 'bg-indigo-500',
+          color: 'bg-purple-500',
         },
         {
           title: 'Rapports',
           description: 'Consulter les statistiques',
           icon: ChartBarIcon,
           action: () => navigate('/admin/reports'),
-          color: 'bg-purple-500',
+          color: 'bg-yellow-500',
         },
       ];
     }
