@@ -80,6 +80,12 @@ export interface Skill {
   id: string;
   slug: string;
   display_name: string;
+  category?: string;
+  created_at?: string;
+  // Champs calculés pour l'admin
+  candidate_count?: number;
+  offer_count?: number;
+  total_usage?: number;
 }
 
 // Types pour les offres d'emploi

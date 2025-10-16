@@ -12,7 +12,7 @@ import {
   ApplicationEvent,
   Notification,
   NotificationPreferences,
-  DashboardStats,
+  // DashboardStats,
   RecruiterDashboardResponse,
   Skill,
   OfferSearchFilters,
@@ -340,6 +340,111 @@ class ApiService {
 
   async createSkill(displayName: string): Promise<{ skill: Skill; message: string }> {
     const response = await this.api.post('/skills', { display_name: displayName });
+    return response.data;
+  }
+
+  // ==========================================
+  // MÉTHODES ADMIN - GESTION DES COMPÉTENCES
+  // ==========================================
+
+  // Statistiques des compétences (admin)
+  async getAdminSkillsStats(): Promise<{
+    stats: {
+      totalSkills: number;
+      topSkills: Skill[];
+      skillsByCategory: any[];
+      usageRate: number;
+    }
+  }> {
+    const response = await this.api.get('/admin/skills/stats');
+    return response.data;
+  }
+
+  // Récupérer les catégories de compétences
+  async getSkillCategories(): Promise<{
+    categories: string[];
+  }> {
+    const response = await this.api.get('/admin/skills/categories');
+    return response.data;
+  }
+
+  // Récupérer toutes les compétences avec filtres (admin)
+  async getAdminSkills(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    category?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }): Promise<{
+    skills: Skill[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    }
+  }> {
+    const response = await this.api.get('/admin/skills', { params });
+    return response.data;
+  }
+
+  // Créer une compétence (admin)
+  async createAdminSkill(data: {
+    display_name: string;
+    category?: string;
+    description?: string;
+  }): Promise<{ skill: Skill; message: string }> {
+    const response = await this.api.post('/admin/skills', data);
+    return response.data;
+  }
+
+  // Mettre à jour une compétence (admin)
+  async updateAdminSkill(id: string, data: {
+    display_name: string;
+    category?: string;
+    description?: string;
+    is_active?: boolean;
+  }): Promise<{ skill: Skill; message: string }> {
+    const response = await this.api.put(`/admin/skills/${id}`, data);
+    return response.data;
+  }
+
+  // Supprimer une compétence (admin)
+  async deleteAdminSkill(id: string): Promise<{ message: string }> {
+    const response = await this.api.delete(`/admin/skills/${id}`);
+    return response.data;
+  }
+
+
+
+  // Fusionner des compétences (admin)
+  async mergeAdminSkills(data: {
+    sourceSkillIds: string[];
+    targetSkillId: string;
+    newDisplayName?: string;
+  }): Promise<{ message: string; mergedCount: number }> {
+    const response = await this.api.post('/admin/skills/merge', data);
+    return response.data;
+  }
+
+  // Détecter les doublons (admin)
+  async getSkillDuplicates(): Promise<{ duplicates: Skill[][] }> {
+    const response = await this.api.get('/admin/skills/duplicates');
+    return response.data;
+  }
+
+  // Obtenir les détails d'utilisation d'une compétence (admin)
+  async getSkillUsage(id: string): Promise<{
+    skill: Skill;
+    usage: {
+      candidates: any[];
+      offers: any[];
+      totalCandidates: number;
+      totalOffers: number;
+    }
+  }> {
+    const response = await this.api.get(`/admin/skills/${id}/usage`);
     return response.data;
   }
 
