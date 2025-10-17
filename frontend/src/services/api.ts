@@ -518,16 +518,18 @@ class ApiService {
   }
 
   async getPendingCompanies(): Promise<{ companies: any[] }> {
-    const response = await this.api.get('/admin/companies');
+    const response = await this.api.get('/admin/companies/pending');
+    return { companies: response.data.data || [] };
+  }
+
+  async approveCompany(companyId: string): Promise<{ success: boolean; data: any; message: string }> {
+    const response = await this.api.patch(`/admin/companies/${companyId}/approve`);
     return response.data;
   }
 
-  async approveCompany(companyId: string): Promise<void> {
-    await this.api.post(`/admin/companies/${companyId}/approve`);
-  }
-
-  async rejectCompany(companyId: string): Promise<void> {
-    await this.api.post(`/admin/companies/${companyId}/reject`);
+  async rejectCompany(companyId: string, reason?: string): Promise<{ success: boolean; data: any; message: string }> {
+    const response = await this.api.patch(`/admin/companies/${companyId}/reject`, { reason: reason || 'Rejeté par l\'administrateur' });
+    return response.data;
   }
 
   async updateCompanyStatus(companyId: string, status: string, reason?: string): Promise<{ company: any; message: string }> {
@@ -542,6 +544,32 @@ class ApiService {
 
   async suspendCompany(companyId: string, suspend: boolean, reason?: string): Promise<{ company: any; message: string }> {
     const response = await this.api.patch(`/admin/companies/${companyId}/suspend`, { suspend, reason });
+    return response.data;
+  }
+
+  // Méthodes pour les recruteurs - Gestion des entreprises
+  async getMyCompanies(): Promise<{ success: boolean; data: any[]; count: number }> {
+    const response = await this.api.get('/companies/my-companies');
+    return response.data;
+  }
+
+  async getCompanyDetails(companyId: string): Promise<{ success: boolean; data: any }> {
+    const response = await this.api.get(`/companies/${companyId}`);
+    return response.data;
+  }
+
+  async updateCompanyDetails(companyId: string, data: any): Promise<{ success: boolean; data: any; message: string }> {
+    const response = await this.api.put(`/companies/${companyId}`, data);
+    return response.data;
+  }
+
+  async getCompanyStatus(companyId: string): Promise<{ success: boolean; data: any }> {
+    const response = await this.api.get(`/companies/${companyId}/status`);
+    return response.data;
+  }
+
+  async contestCompanyRejection(companyId: string, message: string): Promise<{ success: boolean; message: string }> {
+    const response = await this.api.post(`/companies/${companyId}/contest-rejection`, { message });
     return response.data;
   }
 
