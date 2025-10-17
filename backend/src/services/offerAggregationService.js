@@ -178,10 +178,10 @@ class OfferAggregationService {
   async extractAndAssociateSkills(franceTravailOffer, offerId) {
     try {
       const skills = [];
-      
+
       // Extraire les compétences depuis la description et le titre
       const text = `${franceTravailOffer.intitule} ${franceTravailOffer.description}`;
-      const extractedSkills = await skillsService.extractSkillsFromText(text);
+      const extractedSkills = await skillsService.extractSkillsFromText(text) || [];
       
       // Ajouter les compétences spécifiques France Travail si disponibles
       if (franceTravailOffer.competences) {
