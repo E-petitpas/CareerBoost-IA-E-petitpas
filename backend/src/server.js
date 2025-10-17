@@ -11,10 +11,12 @@ const candidateRoutes = require('./routes/candidate');
 const recruiterRoutes = require('./routes/recruiter');
 const adminRoutes = require('./routes/admin');
 const adminOffersRoutes = require('./routes/adminOffers');
+const adminCompaniesRoutes = require('./routes/adminCompanies');
 const offerRoutes = require('./routes/offers');
 const applicationRoutes = require('./routes/applications');
 const notificationRoutes = require('./routes/notifications');
 const skillsRoutes = require('./routes/skills');
+const companiesRoutes = require('./routes/companies');
 
 // Services
 const offerAggregationService = require('./services/offerAggregationService');
@@ -70,7 +72,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/candidate', authenticateToken, candidateRoutes);
 app.use('/api/recruiter', authenticateToken, recruiterRoutes);
 app.use('/api/admin/offers', adminOffersRoutes); // Route spécifique AVANT /api/admin
+app.use('/api/admin/companies', authenticateToken, adminCompaniesRoutes); // Route spécifique AVANT /api/admin
 app.use('/api/admin', authenticateToken, adminRoutes);
+app.use('/api/companies', authenticateToken, companiesRoutes);
 app.use('/api/offers', offerRoutes);
 app.use('/api/applications', authenticateToken, applicationRoutes);
 app.use('/api/notifications', authenticateToken, notificationRoutes);
