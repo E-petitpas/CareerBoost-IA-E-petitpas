@@ -5,6 +5,8 @@ const { supabase } = require('../config/supabase');
 const { authSchemas, validate } = require('../utils/validation');
 const { asyncHandler } = require('../middleware/errorHandler');
 const emailService = require('../services/emailService');
+const companyService = require('../services/companyService');
+const notificationService = require('../services/notificationService');
 
 const router = express.Router();
 
@@ -56,78 +58,39 @@ router.post('/register', validate(authSchemas.register), asyncHandler(async (req
 
   // Si c'est un recruteur, créer l'entreprise
   if (role === 'RECRUITER') {
-    // Vérifier si l'entreprise existe déjà
-    const { data: existingCompany } = await supabase
-      .from('companies')
-      .select('id, name, status')
-      .eq('domain', companyDomain || `${companyName.toLowerCase().replace(/\s+/g, '-')}.com`)
-      .single();
+    try {
+      // Créer l'entreprise avec le service
+      const company = await companyService.createCompany({
+        name: companyName,
+        siren: companySiren,
+        domain: companyDomain
+      });
 
-    let company;
+      console.log('Register: Entreprise créée/trouvée:', company.id);
 
-    if (existingCompany) {
-      // L'entreprise existe déjà, l'utiliser
-      console.log('Register: Entreprise existante trouvée:', existingCompany.id);
-      company = existingCompany;
-    } else {
-      // Créer une nouvelle entreprise
-      const { data: newCompany, error: companyError } = await supabase
-        .from('companies')
-        .insert({
-          name: companyName,
-          siren: companySiren,
-          domain: companyDomain || `${companyName.toLowerCase().replace(/\s+/g, '-')}.com`,
-          status: 'VERIFIED' // Auto-approuvé avec le nouveau système
-        })
-        .select()
-        .single();
+      // Créer le lien entre l'utilisateur et l'entreprise
+      await companyService.createMembership(user.id, company.id, 'ADMIN_RH', true);
 
-      if (companyError) {
-        console.error('Erreur création entreprise:', companyError);
-        // Supprimer l'utilisateur créé
-        await supabase.from('users').delete().eq('id', user.id);
-        return res.status(500).json({ error: 'Erreur lors de la création de l\'entreprise' });
-      }
+      // Envoyer un email de bienvenue
+      await notificationService.sendRecruiterWelcomeEmail(
+        { name: user.name, email: user.email },
+        company
+      );
 
-      company = newCompany;
+      // Créer une notification in-app
+      await notificationService.createNotification(
+        user.id,
+        'COMPANY_CREATED',
+        { company_id: company.id, company_name: company.name }
+      );
+
+      console.log('Register: Emails et notifications envoyés');
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'entreprise:', error);
+      // Supprimer l'utilisateur créé en cas d'erreur
+      await supabase.from('users').delete().eq('id', user.id);
+      return res.status(500).json({ error: 'Erreur lors de la création de l\'entreprise' });
     }
-
-    console.log('Register: Entreprise utilisée:', company.id);
-
-    // Vérifier si l'utilisateur est déjà membre de cette entreprise
-    const { data: existingMembership } = await supabase
-      .from('company_memberships')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .eq('company_id', company.id)
-      .single();
-
-    if (!existingMembership) {
-      // Lier l'utilisateur à l'entreprise seulement s'il n'est pas déjà membre
-      const { error: membershipError } = await supabase
-        .from('company_memberships')
-        .insert({
-          user_id: user.id,
-          company_id: company.id,
-          role_in_company: 'ADMIN_RH',
-          is_primary: true,
-          accepted_at: new Date().toISOString()
-        });
-
-      if (membershipError) {
-        console.error('Erreur création membership:', membershipError);
-        return res.status(500).json({ error: 'Erreur lors de la liaison entreprise' });
-      }
-
-      console.log('Register: Membership créé pour l\'entreprise:', company.id);
-    } else {
-      console.log('Register: Utilisateur déjà membre de l\'entreprise:', company.id);
-    }
-
-    // Ajouter les infos de l'entreprise à l'objet user pour l'email
-    user.companyName = companyName;
-    user.companySiren = companySiren;
-    user.companyDomain = companyDomain;
   }
 
   // Si c'est un candidat, créer le profil
