@@ -145,10 +145,63 @@ const validate = (schema) => {
   };
 };
 
+// Schémas pour les entreprises
+const companySchemas = {
+  updateCompany: Joi.object({
+    name: Joi.string().min(2).max(200).optional(),
+    sector: Joi.string().max(100).optional(),
+    size: Joi.string().valid('1-10', '11-50', '51-200', '201-500', '500+').optional(),
+    logo_url: Joi.string().uri().optional(),
+    description: Joi.string().max(2000).optional()
+  }),
+
+  contestRejection: Joi.object({
+    message: Joi.string().min(10).max(1000).required()
+  })
+};
+
+// Schémas pour les admins
+const adminSchemas = {
+  rejectCompany: Joi.object({
+    reason: Joi.string().min(10).max(500).required()
+  })
+};
+
+// Fonctions utilitaires de validation
+const validateSIREN = (siren) => {
+  if (!siren || !/^\d{9}$/.test(siren)) {
+    return false;
+  }
+
+  // Algorithme de Luhn pour valider le SIREN
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    let digit = parseInt(siren[i]);
+    if (i % 2 === 0) {
+      digit *= 2;
+      if (digit > 9) {
+        digit -= 9;
+      }
+    }
+    sum += digit;
+  }
+
+  return sum % 10 === 0;
+};
+
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 module.exports = {
   authSchemas,
   candidateSchemas,
   offerSchemas,
   applicationSchemas,
-  validate
+  companySchemas,
+  adminSchemas,
+  validate,
+  validateSIREN,
+  validateEmail
 };
