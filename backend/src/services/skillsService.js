@@ -283,6 +283,35 @@ class SkillsService {
       return [];
     }
   }
+
+  // Extraire les compétences depuis un texte
+  static async extractSkillsFromText(text) {
+    try {
+      if (!text) {
+        return [];
+      }
+
+      const textLower = text.toLowerCase();
+      const extractedSkills = [];
+
+      // Chercher les compétences prédéfinies dans le texte
+      for (const skill of predefinedSkills) {
+        const skillName = skill.display_name.toLowerCase();
+        if (textLower.includes(skillName)) {
+          extractedSkills.push({
+            name: skill.display_name,
+            slug: skill.slug,
+            is_required: false
+          });
+        }
+      }
+
+      return extractedSkills;
+    } catch (error) {
+      console.error('Erreur extraction compétences depuis texte:', error);
+      return [];
+    }
+  }
 }
 
 module.exports = SkillsService;
