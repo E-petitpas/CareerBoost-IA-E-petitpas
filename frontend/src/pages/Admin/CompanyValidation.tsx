@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  CheckCircleIcon, 
-  XCircleIcon, 
+import {
+  CheckCircleIcon,
+  XCircleIcon,
   ClockIcon,
   BuildingOfficeIcon,
   GlobeAltIcon,
@@ -31,6 +31,8 @@ const CompanyValidation: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'VERIFIED' | 'REJECTED'>('PENDING');
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState<string>('');
 
   useEffect(() => {
     loadCompanies();
@@ -39,13 +41,12 @@ const CompanyValidation: React.FC = () => {
   const loadCompanies = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getPendingCompanies();
-      let filteredCompanies = response.companies || [];
-      
-      if (filter !== 'ALL') {
-        filteredCompanies = filteredCompanies.filter(company => company.status === filter);
-      }
-      
+
+      // Récupérer toutes les entreprises avec le filtre approprié
+      const params = filter !== 'ALL' ? { status: filter } : {};
+      const response = await apiService.getAdminCompanies(params);
+
+      const filteredCompanies = response.data || [];
       setCompanies(filteredCompanies);
     } catch (err: any) {
       setError(err.message || 'Erreur lors du chargement des entreprises');
@@ -57,21 +58,27 @@ const CompanyValidation: React.FC = () => {
   const handleValidateCompany = async (companyId: string, action: 'approve' | 'reject') => {
     try {
       setProcessingId(companyId);
-      
+
       if (action === 'approve') {
         await apiService.approveCompany(companyId);
       } else {
-        await apiService.rejectCompany(companyId);
+        if (!rejectReason.trim()) {
+          setError('Veuillez entrer une raison de rejet');
+          setProcessingId(null);
+          return;
+        }
+        await apiService.rejectCompany(companyId, rejectReason);
+        setRejectingId(null);
+        setRejectReason('');
       }
-      
+
       // Recharger la liste
       await loadCompanies();
-      
+
       // Notification de succès
       const actionText = action === 'approve' ? 'approuvée' : 'rejetée';
-      // Ici vous pouvez ajouter une notification toast
       console.log(`Entreprise ${actionText} avec succès`);
-      
+
     } catch (err: any) {
       setError(err.message || `Erreur lors de la ${action === 'approve' ? 'validation' : 'rejection'}`);
     } finally {
@@ -151,11 +158,10 @@ const CompanyValidation: React.FC = () => {
               <button
                 key={status}
                 onClick={() => setFilter(status)}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  filter === status
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                }`}
+                className={`px-4 py-2 rounded-md text-sm font-medium ${filter === status
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
               >
                 {status === 'ALL' && 'Toutes'}
                 {status === 'PENDING' && 'En attente'}
@@ -173,7 +179,7 @@ const CompanyValidation: React.FC = () => {
               <BuildingOfficeIcon className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune entreprise</h3>
               <p className="mt-1 text-sm text-gray-500">
-                {filter === 'PENDING' 
+                {filter === 'PENDING'
                   ? 'Aucune entreprise en attente de validation'
                   : `Aucune entreprise avec le statut ${filter.toLowerCase()}`
                 }
@@ -222,25 +228,56 @@ const CompanyValidation: React.FC = () => {
                         </div>
                         <div className="flex items-center space-x-4">
                           {getStatusBadge(company.status)}
-                          
+
                           {company.status === 'PENDING' && (
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => handleValidateCompany(company.id, 'approve')}
-                                disabled={processingId === company.id}
-                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-                              >
-                                <CheckCircleIcon className="w-4 h-4 mr-1" />
-                                Approuver
-                              </button>
-                              <button
-                                onClick={() => handleValidateCompany(company.id, 'reject')}
-                                disabled={processingId === company.id}
-                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-                              >
-                                <XCircleIcon className="w-4 h-4 mr-1" />
-                                Rejeter
-                              </button>
+                            <div className="flex flex-col space-y-2">
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleValidateCompany(company.id, 'approve')}
+                                  disabled={processingId === company.id}
+                                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                                >
+                                  <CheckCircleIcon className="w-4 h-4 mr-1" />
+                                  Approuver
+                                </button>
+                                <button
+                                  onClick={() => setRejectingId(rejectingId === company.id ? null : company.id)}
+                                  disabled={processingId === company.id}
+                                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+                                >
+                                  <XCircleIcon className="w-4 h-4 mr-1" />
+                                  Rejeter
+                                </button>
+                              </div>
+                              {rejectingId === company.id && (
+                                <div className="bg-red-50 p-3 rounded-md border border-red-200">
+                                  <textarea
+                                    value={rejectReason}
+                                    onChange={(e) => setRejectReason(e.target.value)}
+                                    placeholder="Raison du rejet..."
+                                    className="w-full px-3 py-2 border border-red-300 rounded-md text-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                                    rows={3}
+                                  />
+                                  <div className="flex space-x-2 mt-2">
+                                    <button
+                                      onClick={() => handleValidateCompany(company.id, 'reject')}
+                                      disabled={processingId === company.id}
+                                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                                    >
+                                      Confirmer le rejet
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setRejectingId(null);
+                                        setRejectReason('');
+                                      }}
+                                      className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                    >
+                                      Annuler
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
