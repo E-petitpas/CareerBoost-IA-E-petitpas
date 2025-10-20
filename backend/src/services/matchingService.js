@@ -134,12 +134,29 @@ class MatchingService {
 
   /**
    * Calcule la correspondance des compétences
+   * Selon le cahier des charges : les compétences obligatoires ont un poids beaucoup plus important
    */
   calculateSkillsMatch(candidate, offer) {
     const candidateSkills = candidate.candidate_skills || [];
     const offerSkills = offer.job_offer_skills || [];
 
+    // Log de débogage
+    console.log('🔍 DEBUG MATCHING - Offre:', offer.title);
+    console.log('📊 Compétences candidat:', candidateSkills.map(cs => ({
+      id: cs.skills?.id,
+      slug: cs.skills?.slug,
+      name: cs.skills?.display_name
+    })));
+    console.log('📋 Compétences offre:', offerSkills.map(os => ({
+      id: os.skills?.id,
+      slug: os.skills?.slug,
+      name: os.skills?.display_name,
+      required: os.is_required
+    })));
+
     if (offerSkills.length === 0) {
+      console.log('⚠️ ATTENTION : Cette offre n\'a AUCUNE compétence définie !');
+      console.log('⚠️ Score neutre de 50% appliqué pour les compétences');
       return {
         score: 0.5, // Score neutre si pas de compétences définies
         matched: [],
@@ -152,16 +169,39 @@ class MatchingService {
     const missing = [];
     let totalWeight = 0;
     let matchedWeight = 0;
+    let requiredMissingCount = 0;
 
     // Analyser chaque compétence requise
     offerSkills.forEach(offerSkill => {
-      const weight = offerSkill.is_required ? 2 : 1; // Compétences requises pèsent plus
+      const weight = offerSkill.is_required ? 3 : 1; // Compétences obligatoires pèsent 3x plus
       totalWeight += weight;
 
-      const candidateSkill = candidateSkills.find(cs => 
-        cs.skills.id === offerSkill.skills.id ||
-        cs.skills.slug === offerSkill.skills.slug
-      );
+      // Matching amélioré : par ID, slug, ou nom (case-insensitive)
+      const candidateSkill = candidateSkills.find(cs => {
+        if (!cs.skills || !offerSkill.skills) return false;
+
+        // Match par ID
+        if (cs.skills.id === offerSkill.skills.id) return true;
+
+        // Match par slug
+        if (cs.skills.slug === offerSkill.skills.slug) return true;
+
+        // Match par nom (case-insensitive et trim)
+        const candidateName = (cs.skills.display_name || '').toLowerCase().trim();
+        const offerName = (offerSkill.skills.display_name || '').toLowerCase().trim();
+        if (candidateName === offerName) return true;
+
+        // Match partiel (pour gérer "Java" vs "Java EE")
+        if (candidateName && offerName) {
+          // Si l'un contient l'autre (ex: "Java" dans "Java EE")
+          if (candidateName.includes(offerName) || offerName.includes(candidateName)) {
+            console.log(`✅ Match partiel trouvé: "${candidateName}" ≈ "${offerName}"`);
+            return true;
+          }
+        }
+
+        return false;
+      });
 
       if (candidateSkill) {
         matched.push({
@@ -175,16 +215,26 @@ class MatchingService {
           skill: offerSkill.skills.display_name,
           required: offerSkill.is_required
         });
+        if (offerSkill.is_required) {
+          requiredMissingCount++;
+        }
       }
     });
 
-    const score = totalWeight > 0 ? matchedWeight / totalWeight : 0;
+    let score = totalWeight > 0 ? matchedWeight / totalWeight : 0;
+
+    // Pénalité supplémentaire si compétences obligatoires manquantes
+    // Chaque compétence obligatoire manquante réduit le score de 15%
+    if (requiredMissingCount > 0) {
+      const penalty = Math.min(0.6, requiredMissingCount * 0.15); // Maximum -60%
+      score = score * (1 - penalty);
+    }
 
     return {
-      score,
+      score: Math.max(0, score), // S'assurer que le score ne soit pas négatif
       matched,
       missing,
-      details: `${matched.length}/${offerSkills.length} compétences correspondantes`
+      details: `${matched.length}/${offerSkills.length} compétences correspondantes${requiredMissingCount > 0 ? `, ${requiredMissingCount} obligatoire(s) manquante(s)` : ''}`
     };
   }
 
@@ -250,37 +300,84 @@ class MatchingService {
   }
 
   /**
-   * Génère une explication lisible du score
+   * Génère une explication lisible du score selon le format du cahier des charges
+   * Format attendu: "Score 72 : vous correspondez sur 4 compétences, mais il manque Docker et vous êtes éloigné de 20 km."
    */
   generateExplanation({ score, skillsResult, experienceResult, hardFiltersResult, candidate, offer }) {
-    const parts = [];
+    const positiveParts = [];
+    const negativeParts = [];
 
-    // Score principal
-    parts.push(`Score ${score}`);
+    // Vérifier si l'offre a des compétences définies
+    const offerHasSkills = skillsResult.matched.length > 0 || skillsResult.missing.length > 0;
 
-    // Compétences
-    if (skillsResult.matched.length > 0) {
-      parts.push(`${skillsResult.matched.length} compétence(s) correspondante(s)`);
+    // 1. Phrase principale sur les compétences correspondantes
+    if (!offerHasSkills) {
+      positiveParts.push(`cette offre n'a pas de compétences techniques définies, score basé sur l'expérience`);
+    } else if (skillsResult.matched.length > 0) {
+      // Ajouter les noms des compétences matchées (max 3)
+      const matchedNames = skillsResult.matched.slice(0, 3).map(m => m.skills?.display_name).filter(Boolean);
+      if (matchedNames.length > 0) {
+        const skillsText = matchedNames.join(', ') + (skillsResult.matched.length > 3 ? '...' : '');
+        positiveParts.push(`vous correspondez sur ${skillsResult.matched.length} compétence${skillsResult.matched.length > 1 ? 's' : ''} (${skillsText})`);
+      } else {
+        positiveParts.push(`vous correspondez sur ${skillsResult.matched.length} compétence${skillsResult.matched.length > 1 ? 's' : ''}`);
+      }
+    } else {
+      negativeParts.push(`aucune compétence correspondante`);
     }
-    
+
+    // 2. Compétences manquantes (requises uniquement)
     if (skillsResult.missing.length > 0) {
-      const requiredMissing = skillsResult.missing.filter(m => m.required);
+      const requiredMissing = skillsResult.missing.filter(m => m.is_required);
       if (requiredMissing.length > 0) {
-        parts.push(`manque ${requiredMissing.map(m => m.skill).join(', ')}`);
+        const missingNames = requiredMissing.slice(0, 2).map(m => m.skills?.display_name).filter(Boolean);
+        if (missingNames.length > 0) {
+          const missingText = missingNames.join(' et ');
+          const moreCount = requiredMissing.length - missingNames.length;
+          if (moreCount > 0) {
+            negativeParts.push(`il manque ${missingText} (et ${moreCount} autre${moreCount > 1 ? 's' : ''})`);
+          } else {
+            negativeParts.push(`il manque ${missingText}`);
+          }
+        }
       }
     }
 
-    // Distance
+    // 3. Distance géographique
     if (hardFiltersResult.distanceKm !== null) {
-      parts.push(`éloigné de ${Math.round(hardFiltersResult.distanceKm)} km`);
+      const distanceRounded = Math.round(hardFiltersResult.distanceKm);
+      negativeParts.push(`vous êtes éloigné de ${distanceRounded} km`);
     }
 
-    // Expérience
-    if (experienceResult.details && !experienceResult.details.includes('Aucune')) {
-      parts.push(experienceResult.details.toLowerCase());
+    // 4. Expérience (si pertinent)
+    const candidateExp = candidate.experience_years || 0;
+    const requiredExp = offer.experience_min || 0;
+    if (requiredExp > 0 && candidateExp < requiredExp) {
+      const expDiff = requiredExp - candidateExp;
+      negativeParts.push(`${expDiff} an${expDiff > 1 ? 's' : ''} d'expérience en moins que requis`);
     }
 
-    return parts.join(', ');
+    // Construire l'explication finale (1-2 phrases max)
+    if (positiveParts.length === 0 && negativeParts.length === 0) {
+      return `Score ${score} : profil général compatible avec l'offre.`;
+    }
+
+    // Construire la phrase selon le format du cahier des charges
+    // Format: "Score X : [positif], mais [négatif1] et [négatif2]."
+    let explanation = '';
+
+    if (positiveParts.length > 0 && negativeParts.length > 0) {
+      // Cas standard : points positifs + négatifs
+      explanation = `${positiveParts.join(', ')}, mais ${negativeParts.join(' et ')}`;
+    } else if (positiveParts.length > 0) {
+      // Seulement des points positifs
+      explanation = positiveParts.join(', ');
+    } else {
+      // Seulement des points négatifs
+      explanation = negativeParts.join(', ');
+    }
+
+    return `Score ${score} : ${explanation}.`;
   }
 
   /**
