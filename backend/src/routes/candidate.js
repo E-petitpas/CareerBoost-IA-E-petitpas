@@ -1,12 +1,21 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { supabase } = require('../config/supabase');
 const { candidateSchemas, validate } = require('../utils/validation');
 const { requireRole } = require('../middleware/auth');
 const { asyncHandler } = require('../middleware/errorHandler');
 
 const router = express.Router();
+
+// Créer les répertoires d'upload s'ils n'existent pas
+const uploadDirs = ['uploads', 'uploads/cv', 'uploads/lm'];
+uploadDirs.forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
 // Configuration multer pour l'upload de fichiers
 const storage = multer.diskStorage({
@@ -105,14 +114,42 @@ router.get('/profile', asyncHandler(async (req, res) => {
     .order('start_date', { ascending: false });
 
   // Récupérer les expériences
-  const { data: experiences } = await supabase
+  const { data: experiencesRaw } = await supabase
     .from('experiences')
     .select('*')
     .eq('user_id', req.user.id)
     .order('start_date', { ascending: false });
 
-  // Pour l'instant, on ne récupère pas les compétences pour éviter l'erreur de relation
-  // TODO: Récupérer les compétences une fois que la relation est correctement configurée
+  // Remapper position vers role_title pour la compatibilité frontend
+  const experiences = experiencesRaw?.map(exp => ({
+    ...exp,
+    role_title: exp.position
+  })) || [];
+
+  // Récupérer les compétences du candidat
+  const { data: candidate_skills_raw } = await supabase
+    .from('candidate_skills')
+    .select(`
+      id,
+      user_id,
+      skill_id,
+      level,
+      years_experience,
+      skills (
+        id,
+        slug,
+        display_name,
+        category
+      )
+    `)
+    .eq('user_id', req.user.id);
+
+  // Mapper les colonnes pour la compatibilité frontend
+  const candidate_skills = candidate_skills_raw?.map(skill => ({
+    ...skill,
+    proficiency_level: skill.level,
+    last_used_on: null // La colonne n'existe pas dans la base de données
+  })) || [];
 
   // Récupérer l'URL du CV - d'abord depuis le profil, sinon depuis la table documents
   let cv_url = profile.cv_url; // Utiliser d'abord la colonne cv_url du profil
@@ -127,23 +164,22 @@ router.get('/profile', asyncHandler(async (req, res) => {
       .select(`
         id,
         created_at,
-        title,
+        original_name,
         document_versions (
           file_url,
-          version
+          version_number
         )
       `)
       .eq('user_id', req.user.id)
       .eq('type', 'CV')
-      .like('title', '%uploadé%')
       .order('created_at', { ascending: false })
       .limit(1);
 
     if (uploadedCvs?.length > 0 && uploadedCvs[0].document_versions?.length > 0) {
       cv_url = uploadedCvs[0].document_versions[0].file_url;
-      console.log('CV uploadé trouvé depuis documents:', cv_url);
+      console.log('CV trouvé depuis documents:', cv_url);
     } else {
-      // Si pas de CV uploadé, prendre le plus récent (généré ou autre)
+      // Si pas de CV, prendre le plus récent (généré ou autre)
       const { data: cvDocuments } = await supabase
         .from('documents')
         .select(`
@@ -151,7 +187,7 @@ router.get('/profile', asyncHandler(async (req, res) => {
           created_at,
           document_versions (
             file_url,
-            version
+            version_number
           )
         `)
         .eq('user_id', req.user.id)
@@ -176,7 +212,7 @@ router.get('/profile', asyncHandler(async (req, res) => {
       cv_url, // Ajouter l'URL du CV pour la compatibilité avec le frontend
       educations: educations || [],
       experiences: experiences || [],
-      candidate_skills: []
+      candidate_skills: candidate_skills || []
     }
   };
 
@@ -269,12 +305,19 @@ router.delete('/educations/:id', asyncHandler(async (req, res) => {
 
 // Ajouter une expérience
 router.post('/experiences', validate(candidateSchemas.experience), asyncHandler(async (req, res) => {
+  // Mapper role_title vers position pour la base de données
+  const experienceData = {
+    user_id: req.user.id,
+    company: req.body.company,
+    position: req.body.role_title, // Mapper role_title vers position
+    start_date: req.body.start_date,
+    end_date: req.body.end_date,
+    description: req.body.description
+  };
+
   const { data: experience, error } = await supabase
     .from('experiences')
-    .insert({
-      ...req.body,
-      user_id: req.user.id
-    })
+    .insert(experienceData)
     .select()
     .single();
 
@@ -283,17 +326,32 @@ router.post('/experiences', validate(candidateSchemas.experience), asyncHandler(
     return res.status(500).json({ error: 'Erreur lors de l\'ajout de l\'expérience' });
   }
 
+  // Remapper position vers role_title pour la réponse
+  const responseExperience = {
+    ...experience,
+    role_title: experience.position
+  };
+
   res.status(201).json({
-    experience,
+    experience: responseExperience,
     message: 'Expérience ajoutée avec succès'
   });
 }));
 
 // Mettre à jour une expérience
 router.put('/experiences/:id', validate(candidateSchemas.experience), asyncHandler(async (req, res) => {
+  // Mapper role_title vers position pour la base de données
+  const experienceData = {
+    company: req.body.company,
+    position: req.body.role_title, // Mapper role_title vers position
+    start_date: req.body.start_date,
+    end_date: req.body.end_date,
+    description: req.body.description
+  };
+
   const { data: experience, error } = await supabase
     .from('experiences')
-    .update(req.body)
+    .update(experienceData)
     .eq('id', req.params.id)
     .eq('user_id', req.user.id)
     .select()
@@ -308,8 +366,14 @@ router.put('/experiences/:id', validate(candidateSchemas.experience), asyncHandl
     return res.status(404).json({ error: 'Expérience non trouvée' });
   }
 
+  // Remapper position vers role_title pour la réponse
+  const responseExperience = {
+    ...experience,
+    role_title: experience.position
+  };
+
   res.json({
-    experience,
+    experience: responseExperience,
     message: 'Expérience mise à jour avec succès'
   });
 }));
@@ -336,13 +400,14 @@ router.put('/skills', validate(candidateSchemas.skills), asyncHandler(async (req
   await supabase
     .from('candidate_skills')
     .delete()
-    .eq('candidate_user_id', req.user.id);
+    .eq('user_id', req.user.id);
 
   // Ajouter les nouvelles compétences
   if (req.body.length > 0) {
     const skillsToInsert = req.body.map(skill => ({
-      ...skill,
-      candidate_user_id: req.user.id
+      user_id: req.user.id,
+      skill_id: skill.skill_id,
+      level: skill.proficiency_level || 3
     }));
 
     const { error } = await supabase
@@ -358,12 +423,212 @@ router.put('/skills', validate(candidateSchemas.skills), asyncHandler(async (req
   res.json({ message: 'Compétences mises à jour avec succès' });
 }));
 
+// Ajouter une compétence
+router.post('/skills', validate(candidateSchemas.skill), asyncHandler(async (req, res) => {
+  try {
+    const { skill_name, proficiency_level } = req.body;
+    console.log('POST /skills - Données reçues:', { skill_name, proficiency_level });
+
+    if (!skill_name || !skill_name.trim()) {
+      return res.status(400).json({ error: 'Le nom de la compétence est requis' });
+    }
+
+    // Chercher la compétence existante (case-insensitive)
+    let { data: skill, error: skillError } = await supabase
+      .from('skills')
+      .select('id, display_name, slug, category')
+      .ilike('display_name', skill_name.trim())
+      .single();
+
+    console.log('Recherche compétence:', { skill_name: skill_name.trim(), found: !!skill, error: skillError?.code });
+
+    // PGRST116 = pas de résultats trouvés (c'est normal)
+    if (skillError && skillError.code !== 'PGRST116') {
+      console.error('Erreur recherche compétence:', skillError);
+      return res.status(500).json({ error: 'Erreur lors de la recherche de la compétence' });
+    }
+
+    // Si la compétence n'existe pas, la créer
+    if (!skill) {
+      const slug = skill_name
+        .toLowerCase()
+        .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Supprimer les accents
+        .replace(/[^a-z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+
+      console.log('Création nouvelle compétence:', { slug, display_name: skill_name.trim() });
+
+      const { data: newSkill, error: createError } = await supabase
+        .from('skills')
+        .insert({
+          slug,
+          display_name: skill_name.trim(),
+          category: 'Autre'
+        })
+        .select('id, display_name, slug, category')
+        .single();
+
+      if (createError) {
+        console.error('Erreur création compétence:', createError);
+        return res.status(500).json({ error: 'Erreur lors de la création de la compétence' });
+      }
+
+      console.log('Compétence créée:', newSkill);
+      skill = newSkill;
+    }
+
+    // Vérifier si la compétence est déjà ajoutée
+    const { data: existingSkill } = await supabase
+      .from('candidate_skills')
+      .select('id')
+      .eq('user_id', req.user.id)
+      .eq('skill_id', skill.id)
+      .single();
+
+    if (existingSkill) {
+      console.log('Compétence déjà ajoutée:', skill.id);
+      return res.status(400).json({ error: 'Cette compétence est déjà ajoutée' });
+    }
+
+    console.log('Ajout compétence au candidat:', { user_id: req.user.id, skill_id: skill.id, level: proficiency_level || 3 });
+
+    // Ajouter la compétence au candidat
+    // Note: La table candidate_skills utilise 'level' au lieu de 'proficiency_level'
+    const { data: candidateSkill, error: addError } = await supabase
+      .from('candidate_skills')
+      .insert({
+        user_id: req.user.id,
+        skill_id: skill.id,
+        level: proficiency_level || 3
+      })
+      .select(`
+        id,
+        user_id,
+        skill_id,
+        level,
+        years_experience,
+        skills (
+          id,
+          slug,
+          display_name,
+          category
+        )
+      `)
+      .single();
+
+    if (addError) {
+      console.error('Erreur ajout compétence candidat:', addError);
+      return res.status(500).json({ error: 'Erreur lors de l\'ajout de la compétence' });
+    }
+
+    console.log('Compétence ajoutée avec succès:', candidateSkill);
+
+    res.status(201).json({
+      skill: candidateSkill,
+      message: 'Compétence ajoutée avec succès'
+    });
+
+  } catch (error) {
+    console.error('Erreur ajout compétence:', error);
+    res.status(500).json({ error: error.message || 'Erreur lors de l\'ajout de la compétence' });
+  }
+}));
+
+// Modifier une compétence
+router.put('/skills/:skillId', validate(candidateSchemas.skill), asyncHandler(async (req, res) => {
+  try {
+    const { skillId } = req.params;
+    const { proficiency_level } = req.body;
+
+    const { data: candidateSkill, error } = await supabase
+      .from('candidate_skills')
+      .update({
+        level: proficiency_level || 3
+      })
+      .eq('id', skillId)
+      .eq('user_id', req.user.id)
+      .select(`
+        *,
+        skills (
+          id,
+          slug,
+          display_name,
+          category
+        )
+      `)
+      .single();
+
+    if (error) {
+      console.error('Erreur modification compétence:', error);
+      return res.status(500).json({ error: 'Erreur lors de la modification de la compétence' });
+    }
+
+    if (!candidateSkill) {
+      return res.status(404).json({ error: 'Compétence non trouvée' });
+    }
+
+    res.json({
+      skill: candidateSkill,
+      message: 'Compétence modifiée avec succès'
+    });
+
+  } catch (error) {
+    console.error('Erreur modification compétence:', error);
+    res.status(500).json({ error: 'Erreur lors de la modification de la compétence' });
+  }
+}));
+
+// Supprimer une compétence
+router.delete('/skills/:skillId', asyncHandler(async (req, res) => {
+  try {
+    const { skillId } = req.params;
+
+    const { error } = await supabase
+      .from('candidate_skills')
+      .delete()
+      .eq('id', skillId)
+      .eq('user_id', req.user.id);
+
+    if (error) {
+      console.error('Erreur suppression compétence:', error);
+      return res.status(500).json({ error: 'Erreur lors de la suppression de la compétence' });
+    }
+
+    res.json({ message: 'Compétence supprimée avec succès' });
+
+  } catch (error) {
+    console.error('Erreur suppression compétence:', error);
+    res.status(500).json({ error: 'Erreur lors de la suppression de la compétence' });
+  }
+}));
+
 // Route pour les offres sauvegardées
 router.get('/saved-offers', asyncHandler(async (req, res) => {
   try {
-    // Pour l'instant, retourner une liste vide
-    // TODO: Implémenter la sauvegarde d'offres
-    res.json({ savedOffers: [] });
+    const candidateId = req.user.id;
+
+    // Récupérer les offres sauvegardées du candidat
+    const { data: savedOffers } = await supabase
+      .from('saved_offers')
+      .select(`
+        *,
+        offers (
+          id,
+          title,
+          description,
+          location,
+          salary_min,
+          salary_max,
+          contract_type
+        )
+      `)
+      .eq('user_id', candidateId)
+      .order('created_at', { ascending: false });
+
+    res.json({ savedOffers: savedOffers || [] });
   } catch (error) {
     console.error('Erreur récupération offres sauvegardées:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération des offres sauvegardées' });
@@ -374,6 +639,7 @@ router.get('/saved-offers', asyncHandler(async (req, res) => {
 router.post('/cv/generate', asyncHandler(async (req, res) => {
   try {
     const candidateId = req.user.id;
+    console.log('POST /cv/generate - Candidat ID:', candidateId);
 
     // Récupérer les données complètes du candidat
     const { data: user, error: userError } = await supabase
@@ -387,6 +653,8 @@ router.post('/cv/generate', asyncHandler(async (req, res) => {
       return res.status(404).json({ error: 'Utilisateur non trouvé' });
     }
 
+    console.log('Utilisateur trouvé:', user?.name);
+
     const { data: profile, error: profileError } = await supabase
       .from('candidate_profiles')
       .select('*')
@@ -399,32 +667,38 @@ router.post('/cv/generate', asyncHandler(async (req, res) => {
     }
 
     // Récupérer les formations
-    const { data: educations, error: educationsError } = await supabase
-      .from('candidate_educations')
+    const { data: educations } = await supabase
+      .from('educations')
       .select('*')
-      .eq('candidate_id', candidateId)
+      .eq('user_id', candidateId)
       .order('start_date', { ascending: false });
 
     // Récupérer les expériences
-    const { data: experiences, error: experiencesError } = await supabase
-      .from('candidate_experiences')
+    const { data: experiencesRaw } = await supabase
+      .from('experiences')
       .select('*')
-      .eq('candidate_id', candidateId)
+      .eq('user_id', candidateId)
       .order('start_date', { ascending: false });
 
+    // Remapper position vers role_title pour la compatibilité
+    const experiences = experiencesRaw?.map(exp => ({
+      ...exp,
+      role_title: exp.position
+    })) || [];
+
     // Récupérer les compétences
-    const { data: skills, error: skillsError } = await supabase
+    const { data: skills } = await supabase
       .from('candidate_skills')
       .select(`
         *,
         skills (
           id,
-          name,
+          slug,
           display_name,
           category
         )
       `)
-      .eq('candidate_id', candidateId);
+      .eq('user_id', candidateId);
 
     const candidateData = {
       user,
@@ -435,30 +709,37 @@ router.post('/cv/generate', asyncHandler(async (req, res) => {
     };
 
     // Générer le CV avec IA
-    const { generateCVService } = require('../services/documentService');
-    const result = await generateCVService(candidateData);
+    console.log('Génération du CV avec IA...');
+    const DocumentService = require('../services/documentService');
+    const documentService = new DocumentService();
+    const result = await documentService.generateCV(candidateData);
+    console.log('CV généré:', result);
 
     // Créer un document dans la table documents
+    console.log('Création du document dans la base de données...');
     const { data: document, error: docError } = await supabase
       .from('documents')
       .insert({
         user_id: candidateId,
         type: 'CV',
-        title: 'CV généré automatiquement'
+        original_name: `CV_${user.name || 'candidat'}_${Date.now()}.html`,
+        file_path: result.filepath
       })
-      .select()
+      .select('id')
       .single();
 
     if (docError) {
       console.warn('Erreur création document:', docError);
     } else {
+      console.log('Document créé:', document);
       // Créer une version du document
       const { error: versionError } = await supabase
         .from('document_versions')
         .insert({
           document_id: document.id,
-          version: 1,
-          file_url: result.url
+          version_number: 1,
+          file_url: result.url,
+          file_path: result.filepath
         });
 
       if (versionError) {
@@ -479,6 +760,7 @@ router.post('/cv/generate', asyncHandler(async (req, res) => {
       }
     }
 
+    console.log('Envoi de la réponse:', { cv_url: result.url });
     res.json({
       cv_url: result.url,
       message: 'CV généré avec succès'
@@ -486,7 +768,7 @@ router.post('/cv/generate', asyncHandler(async (req, res) => {
 
   } catch (error) {
     console.error('Erreur génération CV:', error);
-    res.status(500).json({ error: 'Erreur lors de la génération du CV' });
+    res.status(500).json({ error: 'Erreur lors de la génération du CV: ' + error.message });
   }
 }));
 
@@ -546,8 +828,51 @@ router.post('/lm/generate', asyncHandler(async (req, res) => {
     };
 
     // Générer la LM avec IA
-    const { generateCoverLetterService } = require('../services/documentService');
-    const result = await generateCoverLetterService(data);
+    const DocumentService = require('../services/documentService');
+    const documentService = new DocumentService();
+    const result = await documentService.generateCoverLetter(data);
+
+    // Créer un document dans la table documents
+    const { data: document, error: docError } = await supabase
+      .from('documents')
+      .insert({
+        user_id: candidateId,
+        type: 'COVER_LETTER',
+        original_name: `LM_${user.name || 'candidat'}_${offer.title || 'offre'}_${Date.now()}.html`,
+        file_path: result.filepath
+      })
+      .select('id')
+      .single();
+
+    if (docError) {
+      console.warn('Erreur création document LM:', docError);
+    } else {
+      // Créer une version du document
+      const { error: versionError } = await supabase
+        .from('document_versions')
+        .insert({
+          document_id: document.id,
+          version_number: 1,
+          file_url: result.url,
+          file_path: result.filepath
+        });
+
+      if (versionError) {
+        console.warn('Erreur création version document LM:', versionError);
+      } else {
+        // Mettre à jour le profil avec l'URL de la LM
+        const { error: updateError } = await supabase
+          .from('candidate_profiles')
+          .update({
+            lm_url: result.url
+          })
+          .eq('user_id', candidateId);
+
+        if (updateError) {
+          console.warn('Erreur mise à jour profil avec LM:', updateError);
+        }
+      }
+    }
 
     res.json({
       lm_url: result.url,
@@ -570,9 +895,7 @@ router.post('/cv/upload', upload.single('cv'), asyncHandler(async (req, res) => 
     }
 
     const fileUrl = `/uploads/cv/${req.file.filename}`;
-
-    // TODO: Ici on pourrait ajouter l'extraction de données du CV avec une bibliothèque comme pdf-parse
-    // Pour l'instant, on sauvegarde juste l'URL du fichier
+    const filePath = `uploads/cv/${req.file.filename}`;
 
     // Créer un document dans la table documents
     const { data: document, error: docError } = await supabase
@@ -580,9 +903,12 @@ router.post('/cv/upload', upload.single('cv'), asyncHandler(async (req, res) => 
       .insert({
         user_id: candidateId,
         type: 'CV',
-        title: `CV uploadé - ${req.file.originalname}`
+        original_name: req.file.originalname,
+        file_path: filePath,
+        file_size: req.file.size,
+        mime_type: req.file.mimetype
       })
-      .select()
+      .select('id')
       .single();
 
     if (docError) {
@@ -595,8 +921,9 @@ router.post('/cv/upload', upload.single('cv'), asyncHandler(async (req, res) => 
       .from('document_versions')
       .insert({
         document_id: document.id,
-        version: 1,
-        file_url: fileUrl
+        version_number: 1,
+        file_url: fileUrl,
+        file_path: filePath
       });
 
     if (versionError) {
@@ -625,7 +952,7 @@ router.post('/cv/upload', upload.single('cv'), asyncHandler(async (req, res) => 
 
   } catch (error) {
     console.error('Erreur upload CV:', error);
-    res.status(500).json({ error: 'Erreur lors de l\'upload du CV' });
+    res.status(500).json({ error: error.message || 'Erreur lors de l\'upload du CV' });
   }
 }));
 

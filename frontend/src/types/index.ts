@@ -49,6 +49,9 @@ export interface CandidateProfile {
 }
 
 export interface CandidateSkill {
+  id: string;
+  user_id: string;
+  skill_id: string;
   proficiency_level?: number;
   last_used_on?: string;
   skills: Skill;

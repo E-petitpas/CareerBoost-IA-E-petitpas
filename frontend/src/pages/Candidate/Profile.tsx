@@ -86,11 +86,10 @@ const CandidateProfile: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`${
-                    activeTab === tab.id
-                      ? 'border-primary-500 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center`}
+                  className={`${activeTab === tab.id
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center`}
                 >
                   <Icon className="h-5 w-5 mr-2" />
                   {tab.name}
@@ -277,10 +276,11 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [skillSuggestions, setSkillSuggestions] = useState<any[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [newSkill, setNewSkill] = useState({
     skill_name: '',
-    proficiency_level: 1,
-    last_used_on: new Date().toISOString().split('T')[0]
+    proficiency_level: 3
   });
 
   const getProficiencyLabel = (level?: number) => {
@@ -313,6 +313,32 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
     }
   };
 
+  const handleSearchSkills = async (query: string) => {
+    if (query.trim().length < 2) {
+      setSkillSuggestions([]);
+      return;
+    }
+
+    try {
+      setLoadingSuggestions(true);
+      const response = await apiService.searchSkills(query, 10);
+      setSkillSuggestions(response.skills || []);
+    } catch (err: any) {
+      console.error('Erreur recherche compétences:', err);
+      setSkillSuggestions([]);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const handleSelectSuggestion = (suggestion: any) => {
+    setNewSkill({
+      ...newSkill,
+      skill_name: suggestion.display_name
+    });
+    setSkillSuggestions([]);
+  };
+
   const handleAddSkill = async () => {
     if (!newSkill.skill_name.trim()) {
       alert('Veuillez saisir le nom de la compétence');
@@ -324,13 +350,13 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
       await apiService.addCandidateSkill(newSkill);
       setNewSkill({
         skill_name: '',
-        proficiency_level: 1,
-        last_used_on: new Date().toISOString().split('T')[0]
+        proficiency_level: 3
       });
       setShowAddForm(false);
+      setSkillSuggestions([]);
       onUpdate();
     } catch (err: any) {
-      alert(err.message || 'Erreur lors de l\'ajout de la compétence');
+      alert(err.response?.data?.error || err.message || 'Erreur lors de l\'ajout de la compétence');
     } finally {
       setSaving(false);
     }
@@ -396,12 +422,12 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {skills.map((skill, index) => (
-            <div key={skill.skills.id} className="border rounded-lg p-4">
+            <div key={skill.id} className="border rounded-lg p-4">
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-medium text-gray-900">{skill.skills.display_name}</h4>
                 {editing && (
                   <button
-                    onClick={() => handleDeleteSkill(skill.skills.id.toString())}
+                    onClick={() => handleDeleteSkill(skill.id.toString())}
                     className="text-red-500 hover:text-red-700 text-lg font-bold"
                     disabled={saving}
                   >
@@ -431,19 +457,6 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
                       <option value="5">Maître</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Dernière utilisation</label>
-                    <input
-                      type="date"
-                      value={skill.last_used_on || ''}
-                      onChange={(e) => {
-                        const newSkills = [...skills];
-                        newSkills[index].last_used_on = e.target.value || undefined;
-                        setSkills(newSkills);
-                      }}
-                      className="w-full text-sm border border-gray-300 rounded px-2 py-1"
-                    />
-                  </div>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -451,11 +464,6 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
                     <span className={`inline-block w-3 h-3 rounded-full mr-2 ${getProficiencyColor(skill.proficiency_level)}`}></span>
                     <span className="text-sm text-gray-600">{getProficiencyLabel(skill.proficiency_level)}</span>
                   </div>
-                  {skill.last_used_on && (
-                    <p className="text-xs text-gray-500">
-                      Dernière utilisation : {new Date(skill.last_used_on).toLocaleDateString('fr-FR')}
-                    </p>
-                  )}
                 </div>
               )}
             </div>
@@ -478,18 +486,43 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
           ) : (
             <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
               <h4 className="font-medium text-gray-900 mb-4">Ajouter une nouvelle compétence</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Nom de la compétence
                   </label>
                   <input
                     type="text"
                     value={newSkill.skill_name}
-                    onChange={(e) => setNewSkill({ ...newSkill, skill_name: e.target.value })}
+                    onChange={(e) => {
+                      setNewSkill({ ...newSkill, skill_name: e.target.value });
+                      handleSearchSkills(e.target.value);
+                    }}
                     placeholder="Ex: JavaScript, React, Python..."
                     className="w-full border border-gray-300 rounded px-3 py-2"
+                    autoComplete="off"
                   />
+                  {skillSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-10">
+                      {loadingSuggestions ? (
+                        <div className="p-2 text-sm text-gray-500">Recherche...</div>
+                      ) : (
+                        skillSuggestions.map((suggestion) => (
+                          <button
+                            key={suggestion.id}
+                            type="button"
+                            onClick={() => handleSelectSuggestion(suggestion)}
+                            className="w-full text-left px-3 py-2 hover:bg-blue-50 text-sm text-gray-700 border-b last:border-b-0"
+                          >
+                            {suggestion.display_name}
+                            {suggestion.category && (
+                              <span className="text-xs text-gray-500 ml-2">({suggestion.category})</span>
+                            )}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -507,17 +540,6 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
                     <option value={5}>Maître</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Dernière utilisation
-                  </label>
-                  <input
-                    type="date"
-                    value={newSkill.last_used_on}
-                    onChange={(e) => setNewSkill({ ...newSkill, last_used_on: e.target.value })}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  />
-                </div>
               </div>
               <div className="flex justify-end space-x-3 mt-4">
                 <button
@@ -525,8 +547,7 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
                     setShowAddForm(false);
                     setNewSkill({
                       skill_name: '',
-                      proficiency_level: 1,
-                      last_used_on: new Date().toISOString().split('T')[0]
+                      proficiency_level: 3
                     });
                   }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"

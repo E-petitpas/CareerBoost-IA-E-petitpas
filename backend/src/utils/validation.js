@@ -59,18 +59,22 @@ const candidateSchemas = {
   }),
 
   experience: Joi.object({
-    company: Joi.string().max(200).optional(),
-    role_title: Joi.string().max(200).optional(),
-    start_date: Joi.date().optional(),
+    company: Joi.string().max(200).required(),
+    role_title: Joi.string().max(200).required(),
+    start_date: Joi.date().required(),
     end_date: Joi.date().min(Joi.ref('start_date')).optional(),
     description: Joi.string().max(1000).optional()
+  }),
+
+  skill: Joi.object({
+    skill_name: Joi.string().min(1).max(200).required(),
+    proficiency_level: Joi.number().min(1).max(5).optional()
   }),
 
   skills: Joi.array().items(
     Joi.object({
       skill_id: Joi.string().uuid().required(),
-      proficiency_level: Joi.number().min(1).max(5).optional(),
-      last_used_on: Joi.date().optional()
+      proficiency_level: Joi.number().min(1).max(5).optional()
     })
   )
 };
