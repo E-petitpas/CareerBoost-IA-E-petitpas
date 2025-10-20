@@ -46,9 +46,58 @@ router.post('/apply', requireRole('CANDIDATE'), validate(applicationSchemas.appl
   console.log('Candidature en cours pour:', { offer_id, candidate_id: req.user.id });
 
   try {
-    // Score de matching simple pour commencer
-    const score = Math.floor(Math.random() * 40) + 60; // Score entre 60 et 100
-    const explanation = "Correspondance basée sur vos compétences et préférences";
+    // Récupérer le profil candidat complet pour le matching
+    const { data: candidateProfile, error: profileError } = await supabase
+      .from('candidate_profiles')
+      .select(`
+        *,
+        users (id, name, email, city, latitude, longitude),
+        candidate_skills (
+          *,
+          skills (id, slug, display_name)
+        )
+      `)
+      .eq('user_id', req.user.id)
+      .single();
+
+    // Récupérer l'offre complète avec ses compétences
+    const { data: fullOffer, error: fullOfferError } = await supabase
+      .from('job_offers')
+      .select(`
+        *,
+        companies (id, name, sector),
+        job_offer_skills (
+          is_required,
+          weight,
+          skills (id, slug, display_name)
+        )
+      `)
+      .eq('id', offer_id)
+      .single();
+
+    let score = 0;
+    let explanation = "Erreur lors du calcul du score de matching";
+    let matchedSkills = [];
+    let missingSkills = [];
+    let distanceKm = null;
+    let hardFilters = {};
+    let inputsHash = null;
+
+    if (!profileError && candidateProfile && !fullOfferError && fullOffer) {
+      const { calculateMatchingScore } = require('../services/matchingService');
+      try {
+        const matchResult = await calculateMatchingScore(candidateProfile, fullOffer);
+        score = matchResult.score;
+        explanation = matchResult.explanation;
+        matchedSkills = matchResult.matchedSkills;
+        missingSkills = matchResult.missingSkills;
+        distanceKm = matchResult.distanceKm;
+        hardFilters = matchResult.hardFilters;
+        inputsHash = matchResult.inputsHash;
+      } catch (error) {
+        console.error('Erreur calcul matching:', error);
+      }
+    }
 
     // Créer la candidature
     const { data: application, error: applicationError } = await supabase
@@ -59,8 +108,8 @@ router.post('/apply', requireRole('CANDIDATE'), validate(applicationSchemas.appl
         status: 'ENVOYE',
         score,
         explanation,
-        cv_snapshot_url: null, // Pour l'instant
-        lm_snapshot_url: null  // Pour l'instant
+        cv_snapshot_url: null,
+        lm_snapshot_url: null
       })
       .select(`
         *,
@@ -84,6 +133,30 @@ router.post('/apply', requireRole('CANDIDATE'), validate(applicationSchemas.appl
       return res.status(500).json({ error: 'Erreur lors de la candidature' });
     }
 
+    // Créer une trace de matching pour audit et transparence
+    if (inputsHash && application) {
+      try {
+        await supabase
+          .from('match_traces')
+          .insert({
+            application_id: application.id,
+            offer_id,
+            candidate_id: req.user.id,
+            inputs_hash: inputsHash,
+            score,
+            matched_skills: matchedSkills.map(s => s.skill),
+            missing_skills: missingSkills.map(s => s.skill),
+            distance_km: distanceKm,
+            hard_filters: hardFilters,
+            explanation
+          });
+        console.log('✅ Trace de matching créée:', application.id);
+      } catch (traceError) {
+        console.error('Erreur création trace matching:', traceError);
+        // Ne pas bloquer la candidature si la trace échoue
+      }
+    }
+
     // Créer un événement dans l'historique
     await supabase
       .from('application_events')
@@ -102,7 +175,10 @@ router.post('/apply', requireRole('CANDIDATE'), validate(applicationSchemas.appl
       application: {
         ...application,
         matching_score: score,
-        explanation: explanation
+        explanation: explanation,
+        matched_skills: matchedSkills,
+        missing_skills: missingSkills,
+        distance_km: distanceKm
       }
     });
 

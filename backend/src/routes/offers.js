@@ -79,12 +79,95 @@ router.get('/search', authenticateToken, validate(offerSchemas.search), asyncHan
     return res.status(500).json({ error: 'Erreur lors de la recherche d\'offres' });
   }
 
-  // TODO: Implémenter le calcul de score de matching IA pour chaque offre
-  // Pour l'instant, on retourne un score factice
-  const offersWithScore = offers.map(offer => ({
-    ...offer,
-    score: Math.floor(Math.random() * 40) + 60, // Score entre 60 et 100
-    explanation: "Correspondance basée sur vos compétences et préférences"
+  // Récupérer le profil candidat complet pour le matching (optionnel)
+  const { data: candidateProfile, error: profileError } = await supabase
+    .from('candidate_profiles')
+    .select(`
+      *,
+      users (id, name, email, city, latitude, longitude)
+    `)
+    .eq('user_id', req.user.id)
+    .maybeSingle();
+
+  // Récupérer les compétences du candidat séparément
+  let candidateSkills = [];
+  if (candidateProfile) {
+    const { data: skillsData, error: skillsError } = await supabase
+      .from('candidate_skills')
+      .select(`
+        *,
+        skills (id, slug, display_name)
+      `)
+      .eq('user_id', req.user.id);
+
+    if (!skillsError && skillsData) {
+      candidateSkills = skillsData;
+    }
+  }
+
+  // Ajouter les compétences au profil
+  if (candidateProfile) {
+    candidateProfile.candidate_skills = candidateSkills;
+  }
+
+  // DEBUG: Afficher les informations du profil
+  console.log('=== DEBUG GET /offers/search ===');
+  console.log('User ID:', req.user.id);
+  console.log('Profile Error:', profileError);
+  console.log('Profile exists:', !!candidateProfile);
+  if (candidateProfile) {
+    console.log('Profile skills count:', candidateProfile.candidate_skills?.length || 0);
+    console.log('Profile skills:', candidateProfile.candidate_skills);
+  }
+  console.log('================================');
+
+  // Calculer les scores de matching pour chaque offre
+  const { calculateMatchingScore } = require('../services/matchingService');
+  const offersWithScore = await Promise.all(offers.map(async (offer) => {
+    try {
+      // Vérifier si le profil est complet
+      // Un profil est complet s'il existe ET a au moins une compétence
+      const isProfileComplete = !profileError && candidateProfile &&
+                                candidateProfile.candidate_skills &&
+                                candidateProfile.candidate_skills.length > 0;
+
+      if (isProfileComplete) {
+        const matchResult = await calculateMatchingScore(candidateProfile, offer);
+        return {
+          ...offer,
+          score: matchResult.score,
+          explanation: matchResult.explanation,
+          matched_skills: matchResult.matchedSkills,
+          missing_skills: matchResult.missingSkills,
+          distance_km: matchResult.distanceKm
+        };
+      } else {
+        // Sinon, retourner l'offre sans score
+        if (!candidateProfile) {
+          console.warn('⚠️ Profil candidat inexistant pour:', req.user.id);
+        } else if (!candidateProfile.candidate_skills || candidateProfile.candidate_skills.length === 0) {
+          console.warn('⚠️ Profil candidat sans compétences pour:', req.user.id);
+        }
+        return {
+          ...offer,
+          score: null,
+          explanation: 'Complétez votre profil (ajoutez vos compétences) pour voir le score de matching',
+          matched_skills: [],
+          missing_skills: [],
+          distance_km: null
+        };
+      }
+    } catch (error) {
+      console.error('❌ Erreur calcul matching pour offre', offer.id, ':', error);
+      return {
+        ...offer,
+        score: null,
+        explanation: 'Erreur lors du calcul du score de matching',
+        matched_skills: [],
+        missing_skills: [],
+        distance_km: null
+      };
+    }
   }));
 
   res.json({
@@ -129,9 +212,81 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     return res.status(404).json({ error: 'Offre non trouvée' });
   }
 
-  // TODO: Calculer le score de matching pour cette offre spécifique
-  offer.score = Math.floor(Math.random() * 40) + 60;
-  offer.explanation = "Correspondance basée sur vos compétences et préférences";
+  // Calculer le score de matching pour cette offre spécifique (optionnel)
+  const { data: candidateProfile, error: profileError } = await supabase
+    .from('candidate_profiles')
+    .select(`
+      *,
+      users (id, name, email, city, latitude, longitude)
+    `)
+    .eq('user_id', req.user.id)
+    .maybeSingle();
+
+  // Récupérer les compétences du candidat séparément
+  let candidateSkills = [];
+  if (candidateProfile) {
+    const { data: skillsData, error: skillsError } = await supabase
+      .from('candidate_skills')
+      .select(`
+        *,
+        skills (id, slug, display_name)
+      `)
+      .eq('user_id', req.user.id);
+
+    if (!skillsError && skillsData) {
+      candidateSkills = skillsData;
+    }
+  }
+
+  // Ajouter les compétences au profil
+  if (candidateProfile) {
+    candidateProfile.candidate_skills = candidateSkills;
+  }
+
+  // DEBUG: Afficher les informations du profil
+  console.log('=== DEBUG GET /offers/:id ===');
+  console.log('User ID:', req.user.id);
+  console.log('Offer ID:', offer.id);
+  console.log('Profile Error:', profileError);
+  console.log('Profile exists:', !!candidateProfile);
+  if (candidateProfile) {
+    console.log('Profile skills count:', candidateProfile.candidate_skills?.length || 0);
+    console.log('Profile skills:', candidateProfile.candidate_skills);
+  }
+  console.log('============================');
+
+  // Vérifier si le profil est complet
+  const isProfileComplete = !profileError && candidateProfile &&
+                            candidateProfile.candidate_skills &&
+                            candidateProfile.candidate_skills.length > 0;
+
+  if (isProfileComplete) {
+    const { calculateMatchingScore } = require('../services/matchingService');
+    try {
+      const matchResult = await calculateMatchingScore(candidateProfile, offer);
+      offer.score = matchResult.score;
+      offer.explanation = matchResult.explanation;
+      offer.matched_skills = matchResult.matchedSkills;
+      offer.missing_skills = matchResult.missingSkills;
+      offer.distance_km = matchResult.distanceKm;
+    } catch (error) {
+      console.error('❌ Erreur calcul matching:', error);
+      offer.score = null;
+      offer.explanation = 'Erreur lors du calcul du score de matching';
+      offer.matched_skills = [];
+      offer.missing_skills = [];
+    }
+  } else {
+    if (!candidateProfile) {
+      console.warn('⚠️ Profil candidat inexistant pour:', req.user.id);
+    } else if (!candidateProfile.candidate_skills || candidateProfile.candidate_skills.length === 0) {
+      console.warn('⚠️ Profil candidat sans compétences pour:', req.user.id);
+    }
+    offer.score = null;
+    offer.explanation = 'Complétez votre profil (ajoutez vos compétences) pour voir le score de matching';
+    offer.matched_skills = [];
+    offer.missing_skills = [];
+  }
 
   res.json({ offer });
 }));
