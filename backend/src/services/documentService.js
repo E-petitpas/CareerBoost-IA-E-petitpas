@@ -1,7 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
 const { aiService } = require('./aiService');
-const crypto = require('crypto');
 
 /**
  * Service de génération de documents (CV et LM) avec IA
@@ -51,7 +50,8 @@ class DocumentService {
       });
 
       // Générer un nom de fichier unique
-      const filename = `cv_${user.name.replace(/\s+/g, '_')}_${Date.now()}.html`;
+      const userName = (user.name || 'cv').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+      const filename = `cv_${userName}_${Date.now()}.html`;
       const filepath = path.join(this.uploadsDir, 'cv', filename);
 
       // Sauvegarder le fichier
@@ -59,9 +59,10 @@ class DocumentService {
 
       // Retourner l'URL d'accès
       const url = `/uploads/cv/${filename}`;
+      const relativeFilepath = `uploads/cv/${filename}`;
 
       console.log('CV généré:', url);
-      return { url, filepath };
+      return { url, filepath: relativeFilepath };
 
     } catch (error) {
       console.error('Erreur génération CV:', error);
@@ -97,7 +98,9 @@ class DocumentService {
       });
 
       // Générer un nom de fichier unique
-      const filename = `lm_${user.name.replace(/\s+/g, '_')}_${offer.title.replace(/\s+/g, '_')}_${Date.now()}.html`;
+      const userName = (user.name || 'lm').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+      const offerTitle = (offer.title || 'offer').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+      const filename = `lm_${userName}_${offerTitle}_${Date.now()}.html`;
       const filepath = path.join(this.uploadsDir, 'lm', filename);
 
       // Sauvegarder le fichier
@@ -105,9 +108,10 @@ class DocumentService {
 
       // Retourner l'URL d'accès
       const url = `/uploads/lm/${filename}`;
+      const relativeFilepath = `uploads/lm/${filename}`;
 
       console.log('LM générée:', url);
-      return { url, filepath };
+      return { url, filepath: relativeFilepath };
 
     } catch (error) {
       console.error('Erreur génération LM:', error);
@@ -119,8 +123,6 @@ class DocumentService {
    * Génère le HTML du CV
    */
   generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
-    const skillsList = skills.map(s => s.skills.display_name).join(', ');
-    
     return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -165,12 +167,12 @@ class DocumentService {
     </div>
     ` : ''}
 
-    ${experiences.length > 0 ? `
+    ${experiences && experiences.length > 0 ? `
     <div class="section">
         <h2>Expériences professionnelles</h2>
         ${experiences.map(exp => `
         <div class="item">
-            <h3>${exp.role_title || 'Poste'}</h3>
+            <h3>${exp.role_title || exp.position || 'Poste'}</h3>
             <div class="meta">${exp.company || 'Entreprise'} | ${this.formatDate(exp.start_date)} - ${this.formatDate(exp.end_date) || 'Présent'}</div>
             ${exp.description ? `<p>${exp.description}</p>` : ''}
         </div>
@@ -191,11 +193,11 @@ class DocumentService {
     </div>
     ` : ''}
 
-    ${skills.length > 0 ? `
+    ${skills && skills.length > 0 ? `
     <div class="section">
         <h2>Compétences</h2>
         <div class="skills">
-            ${skills.map(skill => `<span class="skill">${skill.skills.display_name}</span>`).join('')}
+            ${skills.map(skill => `<span class="skill">${skill.skills?.display_name || 'Compétence'}</span>`).join('')}
         </div>
     </div>
     ` : ''}
@@ -243,7 +245,7 @@ class DocumentService {
     </div>
 
     <div class="recipient">
-        <strong>${offer.companies.name}</strong><br>
+        <strong>${offer.companies?.name || 'Entreprise'}</strong><br>
         Service Ressources Humaines
     </div>
 

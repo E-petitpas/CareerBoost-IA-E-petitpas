@@ -13,26 +13,35 @@ class AIService {
   async generateCVContent(candidateData) {
     try {
       const { user, profile, educations, experiences, skills } = candidateData;
-      
+
+      // Gestion sécurisée des données
+      const userName = user?.name || 'Candidat';
+      const userEmail = user?.email || 'Non renseigné';
+      const userPhone = user?.phone || 'Non renseigné';
+      const userCity = user?.city || 'Non spécifiée';
+      const profileTitle = profile?.title || 'Non spécifié';
+      const profileSummary = profile?.summary || 'Aucun résumé fourni';
+      const experienceYears = profile?.experience_years || 0;
+
       const prompt = `Tu es un expert en rédaction de CV. Génère un CV professionnel et attractif en français pour ce candidat.
 
 INFORMATIONS DU CANDIDAT:
-Nom: ${user.name}
-Email: ${user.email}
-Téléphone: ${user.phone || 'Non renseigné'}
-Titre recherché: ${profile.title || 'Non spécifié'}
-Résumé: ${profile.summary || 'Aucun résumé fourni'}
-Années d'expérience: ${profile.experience_years || 0}
-Localisation: ${user.location?.city || 'Non spécifiée'}
+Nom: ${userName}
+Email: ${userEmail}
+Téléphone: ${userPhone}
+Titre recherché: ${profileTitle}
+Résumé: ${profileSummary}
+Années d'expérience: ${experienceYears}
+Localisation: ${userCity}
 
 COMPÉTENCES:
-${skills.map(s => `- ${s.skills.display_name}`).join('\n')}
+${skills && skills.length > 0 ? skills.map(s => `- ${s.skills?.display_name || 'Compétence'}`).join('\n') : 'Aucune compétence renseignée'}
 
 FORMATIONS:
-${educations.map(e => `- ${e.degree} en ${e.field_of_study} (${e.start_year}-${e.end_year || 'En cours'})`).join('\n')}
+${educations && educations.length > 0 ? educations.map(e => `- ${e.degree || 'Formation'} en ${e.field || 'Domaine non spécifié'} (${e.start_date || 'Date non spécifiée'}-${e.end_date || 'En cours'})`).join('\n') : 'Aucune formation renseignée'}
 
 EXPÉRIENCES:
-${experiences.map(e => `- ${e.title} chez ${e.company} (${e.start_date} - ${e.end_date || 'En cours'}): ${e.description}`).join('\n')}
+${experiences && experiences.length > 0 ? experiences.map(e => `- ${e.role_title || e.position || 'Poste'} chez ${e.company || 'Entreprise'} (${e.start_date || 'Date non spécifiée'} - ${e.end_date || 'En cours'}): ${e.description || 'Pas de description'}`).join('\n') : 'Aucune expérience renseignée'}
 
 INSTRUCTIONS:
 1. Crée un résumé professionnel accrocheur de 3-4 lignes
@@ -84,22 +93,34 @@ FORMATIONS:
   async generateCoverLetterContent(data) {
     try {
       const { user, profile, offer, customMessage } = data;
-      
+
+      // Gestion sécurisée des données
+      const userName = user?.name || 'Candidat';
+      const userCity = user?.city || 'Non spécifiée';
+      const profileTitle = profile?.title || 'Non spécifié';
+      const profileSummary = profile?.summary || 'Aucun résumé fourni';
+      const experienceYears = profile?.experience_years || 0;
+      const offerTitle = offer?.title || 'Poste';
+      const companyName = offer?.companies?.name || 'Non spécifiée';
+      const offerDescription = offer?.description || 'Non fournie';
+      const requiredSkills = offer?.required_skills?.join(', ') || 'Non spécifiées';
+      const offerLocation = offer?.location?.city || 'Non spécifiée';
+
       const prompt = `Tu es un expert en rédaction de lettres de motivation. Génère une lettre de motivation personnalisée et convaincante en français.
 
 INFORMATIONS DU CANDIDAT:
-Nom: ${user.name}
-Titre recherché: ${profile.title || 'Non spécifié'}
-Résumé: ${profile.summary || 'Aucun résumé fourni'}
-Années d'expérience: ${profile.experience_years || 0}
-Localisation: ${user.location?.city || 'Non spécifiée'}
+Nom: ${userName}
+Titre recherché: ${profileTitle}
+Résumé: ${profileSummary}
+Années d'expérience: ${experienceYears}
+Localisation: ${userCity}
 
 OFFRE D'EMPLOI:
-Titre: ${offer.title}
-Entreprise: ${offer.company_name || 'Non spécifiée'}
-Description: ${offer.description || 'Non fournie'}
-Compétences requises: ${offer.required_skills?.join(', ') || 'Non spécifiées'}
-Localisation: ${offer.location?.city || 'Non spécifiée'}
+Titre: ${offerTitle}
+Entreprise: ${companyName}
+Description: ${offerDescription}
+Compétences requises: ${requiredSkills}
+Localisation: ${offerLocation}
 
 MESSAGE PERSONNALISÉ DU CANDIDAT:
 ${customMessage || 'Aucun message personnalisé'}
