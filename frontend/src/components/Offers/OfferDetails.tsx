@@ -97,13 +97,24 @@ const OfferDetails: React.FC<OfferDetailsProps> = ({
           )}
         </div>
 
+        {/* Badge France Travail si applicable */}
+        {offer.source === 'EXTERNAL' && offer.source_url && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start">
+            <div className="flex-1">
+              <p className="text-sm text-blue-800">
+                <span className="font-semibold">ℹ️ Offre externe:</span> Cette offre provient de France Travail. Vous serez redirigé vers le site officiel pour postuler.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Actions principales */}
         <div className="flex space-x-3 mt-4">
           <button
             onClick={() => onApply(offer.id)}
             className="btn-primary flex-1 sm:flex-none"
           >
-            Postuler maintenant
+            {offer.source === 'EXTERNAL' && offer.source_url ? 'Postuler sur France Travail' : 'Postuler maintenant'}
           </button>
           <button
             onClick={() => onSave(offer.id)}

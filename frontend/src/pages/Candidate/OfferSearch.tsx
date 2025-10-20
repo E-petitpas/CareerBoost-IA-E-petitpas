@@ -106,6 +106,16 @@ const OfferSearch: React.FC = () => {
     try {
       console.log('Tentative de candidature pour offre:', offerId);
 
+      // Trouver l'offre sélectionnée
+      const selectedOffer = offers.find(offer => offer.id === offerId);
+
+      // Si l'offre provient de France Travail, rediriger vers source_url
+      if (selectedOffer && selectedOffer.source === 'EXTERNAL' && selectedOffer.source_url) {
+        console.log('Redirection vers France Travail:', selectedOffer.source_url);
+        window.open(selectedOffer.source_url, '_blank');
+        return;
+      }
+
       const customMessage = prompt('Message personnalisé (optionnel):');
       if (customMessage === null) {
         // L'utilisateur a annulé
