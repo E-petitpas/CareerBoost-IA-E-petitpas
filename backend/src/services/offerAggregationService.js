@@ -1,6 +1,6 @@
 const { supabase } = require('../config/supabase');
 const franceTravailService = require('./franceTravailService');
-const skillsService = require('./skillsService');
+const skillsParsingService = require('./skillsParsingService');
 
 class OfferAggregationService {
   constructor() {
@@ -177,72 +177,52 @@ class OfferAggregationService {
    */
   async extractAndAssociateSkills(franceTravailOffer, offerId) {
     try {
-      const skills = [];
+      console.log(`🔍 Parsing compétences pour offre: ${franceTravailOffer.intitule}`);
 
-      // Extraire les compétences depuis la description et le titre
-      const text = `${franceTravailOffer.intitule} ${franceTravailOffer.description}`;
-      const extractedSkills = await skillsService.extractSkillsFromText(text) || [];
-      
+      // Utiliser notre service de parsing robuste
+      const description = franceTravailOffer.description || '';
+      const title = franceTravailOffer.intitule || '';
+
+      // Parser les compétences avec notre service amélioré
+      const parsedSkills = skillsParsingService.parseSkillsFromDescription(description, title);
+      console.log(`📋 ${parsedSkills.length} compétences parsées automatiquement`);
+
       // Ajouter les compétences spécifiques France Travail si disponibles
+      const franceTravailSkills = [];
       if (franceTravailOffer.competences) {
         for (const competence of franceTravailOffer.competences) {
           if (competence.libelle) {
-            skills.push({
-              name: competence.libelle,
-              is_required: competence.exigence === 'E' // E = Exigé, S = Souhaité
+            franceTravailSkills.push({
+              display_name: competence.libelle,
+              slug: competence.libelle.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+              is_required: competence.exigence === 'E', // E = Exigé, S = Souhaité
+              weight: competence.exigence === 'E' ? 3 : 1,
+              category: 'France Travail'
             });
           }
         }
+        console.log(`📋 ${franceTravailSkills.length} compétences France Travail ajoutées`);
       }
 
-      // Combiner avec les compétences extraites automatiquement
-      const allSkills = [...extractedSkills, ...skills];
+      // Combiner les compétences parsées et France Travail
+      const allSkills = [...parsedSkills, ...franceTravailSkills];
       
-      // Associer les compétences à l'offre
-      for (const skill of allSkills) {
-        try {
-          // Trouver ou créer la compétence
-          const { data: existingSkill } = await supabase
-            .from('skills')
-            .select('id')
-            .ilike('name', skill.name)
-            .single();
+      // Utiliser notre service pour associer les compétences à la base de données
+      const matchedSkills = await skillsParsingService.matchSkillsToDatabase(allSkills, supabase);
+      console.log(`✅ ${matchedSkills.length} compétences matchées en base de données`);
 
-          let skillId;
-          if (existingSkill) {
-            skillId = existingSkill.id;
-          } else {
-            // Créer la compétence si elle n'existe pas
-            const { data: newSkill } = await supabase
-              .from('skills')
-              .insert({
-                name: skill.name,
-                slug: skill.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-                display_name: skill.name,
-                category: 'Technique'
-              })
-              .select('id')
-              .single();
-            
-            if (newSkill) {
-              skillId = newSkill.id;
-            }
-          }
+      // Mettre à jour l'offre avec les compétences
+      if (matchedSkills.length > 0) {
+        await skillsParsingService.updateOfferSkills(offerId, matchedSkills, supabase);
+        console.log(`🎉 Offre ${offerId} mise à jour avec ${matchedSkills.length} compétences`);
 
-          if (skillId) {
-            // Associer la compétence à l'offre
-            await supabase
-              .from('job_offer_skills')
-              .insert({
-                job_offer_id: offerId,
-                skill_id: skillId,
-                is_required: skill.is_required || false,
-                weight: skill.is_required ? 3 : 1
-              });
-          }
-        } catch (skillError) {
-          console.error('Erreur lors de l\'association de la compétence:', skillError);
-        }
+        // Log des compétences ajoutées pour debug
+        const requiredSkills = matchedSkills.filter(s => s.is_required);
+        const optionalSkills = matchedSkills.filter(s => !s.is_required);
+        console.log(`   - ${requiredSkills.length} compétences obligatoires`);
+        console.log(`   - ${optionalSkills.length} compétences optionnelles`);
+      } else {
+        console.log(`⚠️ Aucune compétence matchée pour l'offre ${offerId}`);
       }
     } catch (error) {
       console.error('Erreur lors de l\'extraction des compétences:', error);
