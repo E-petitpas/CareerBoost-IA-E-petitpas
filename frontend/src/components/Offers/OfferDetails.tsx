@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   MapPinIcon,
   BriefcaseIcon,
@@ -9,10 +9,12 @@ import {
   BookmarkIcon,
   ShareIcon,
   ExclamationTriangleIcon,
-  XMarkIcon
+  XMarkIcon,
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
 import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 import { JobOffer } from '../../types';
+import MatchingDetailsModal from './MatchingDetailsModal';
 
 interface OfferDetailsProps {
   offer: JobOffer;
@@ -29,6 +31,8 @@ const OfferDetails: React.FC<OfferDetailsProps> = ({
   onApply,
   onClose
 }) => {
+  const [showMatchingModal, setShowMatchingModal] = useState(false);
+
   const formatSalary = (min?: number, max?: number, currency = '€') => {
     if (!min && !max) return 'Salaire non spécifié';
     if (min && max) return `${min.toLocaleString()} - ${max.toLocaleString()} ${currency}`;
@@ -109,12 +113,21 @@ const OfferDetails: React.FC<OfferDetailsProps> = ({
         )}
 
         {/* Actions principales */}
-        <div className="flex space-x-3 mt-4">
+        <div className="flex flex-wrap gap-3 mt-4">
           <button
             onClick={() => onApply(offer.id)}
             className="btn-primary flex-1 sm:flex-none"
           >
             {offer.source === 'EXTERNAL' && offer.source_url ? 'Postuler sur France Travail' : 'Postuler maintenant'}
+          </button>
+          <button
+            onClick={() => setShowMatchingModal(true)}
+            className="btn-outline flex-1 sm:flex-none flex items-center justify-center"
+            title="Voir l'analyse détaillée du matching"
+          >
+            <ChartBarIcon className="h-5 w-5 mr-2" />
+            <span className="hidden sm:inline">Voir le matching</span>
+            <span className="sm:hidden">Matching</span>
           </button>
           <button
             onClick={() => onSave(offer.id)}
@@ -281,6 +294,22 @@ const OfferDetails: React.FC<OfferDetailsProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Modal de matching détaillé */}
+      {showMatchingModal && (
+        <MatchingDetailsModal
+          offer={offer}
+          isOpen={showMatchingModal}
+          onClose={() => setShowMatchingModal(false)}
+          onApply={onApply}
+          onSave={onSave}
+          isSaved={isSaved}
+          onReport={(offerId, reason) => {
+            console.log(`Signalement pour l'offre ${offerId}: ${reason}`);
+            // TODO: Implémenter l'API de signalement
+          }}
+        />
+      )}
     </div>
   );
 };

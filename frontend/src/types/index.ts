@@ -117,6 +117,9 @@ export interface JobOffer {
   job_offer_skills: JobOfferSkill[];
   score?: number;
   explanation?: string;
+  matched_skills?: Array<{ skill: string; level?: number; required?: boolean }>;
+  missing_skills?: Array<{ skill: string; required?: boolean }>;
+  distance_km?: number;
 }
 
 export interface JobOfferSkill {

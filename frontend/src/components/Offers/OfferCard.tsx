@@ -45,9 +45,16 @@ const OfferCard: React.FC<OfferCardProps> = ({
 
   const getScoreBadgeClass = (score?: number) => {
     if (!score) return '';
-    if (score >= 90) return 'badge-success';
-    if (score >= 70) return 'badge-warning';
+    if (score >= 80) return 'badge-success';
+    if (score >= 60) return 'badge-warning';
     return 'badge-secondary';
+  };
+
+  const getScoreLabel = (score?: number) => {
+    if (!score) return 'Pas de score';
+    if (score >= 80) return 'Excellent match';
+    if (score >= 60) return 'Bon match';
+    return 'Match faible';
   };
 
   return (
@@ -57,8 +64,8 @@ const OfferCard: React.FC<OfferCardProps> = ({
     >
       <div className="card-body">
         {/* Header avec titre et score */}
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 flex-1 mr-3">
+        <div className="flex flex-col sm:flex-row items-start justify-between mb-3 gap-2">
+          <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 flex-1">
             {offer.title}
           </h3>
           {offer.score && (
@@ -96,6 +103,40 @@ const OfferCard: React.FC<OfferCardProps> = ({
           {offer.description}
         </p>
 
+        {/* Explication du matching */}
+        {offer.explanation && (
+          <div className="mb-3 p-2 bg-blue-50 rounded border border-blue-200">
+            <p className="text-xs text-blue-900">
+              <span className="font-semibold">💡 {getScoreLabel(offer.score)}: </span>
+              {offer.explanation}
+            </p>
+          </div>
+        )}
+
+        {/* Compétences matchées et manquantes */}
+        <div className="mb-4 flex flex-wrap gap-2 sm:gap-4 text-xs">
+          {offer.matched_skills && offer.matched_skills.length > 0 && (
+            <div className="flex items-center text-green-700">
+              <span className="mr-1">✅</span>
+              <span className="hidden sm:inline">{offer.matched_skills.length} compétence(s) matchée(s)</span>
+              <span className="sm:hidden">{offer.matched_skills.length} matchée(s)</span>
+            </div>
+          )}
+          {offer.missing_skills && offer.missing_skills.length > 0 && (
+            <div className="flex items-center text-red-700">
+              <span className="mr-1">❌</span>
+              <span className="hidden sm:inline">{offer.missing_skills.length} manquante(s)</span>
+              <span className="sm:hidden">{offer.missing_skills.length} manq.</span>
+            </div>
+          )}
+          {offer.distance_km && (
+            <div className="flex items-center text-orange-700">
+              <span className="mr-1">📍</span>
+              <span>{Math.round(offer.distance_km)} km</span>
+            </div>
+          )}
+        </div>
+
         {/* Compétences requises */}
         {offer.job_offer_skills && offer.job_offer_skills.length > 0 && (
           <div className="mb-4">
@@ -122,25 +163,26 @@ const OfferCard: React.FC<OfferCardProps> = ({
         )}
 
         {/* Footer avec salaire, date et actions */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex flex-row items-center space-x-1 text-xs text-gray-500">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-3 border-t border-gray-100 gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-1 text-xs text-gray-500">
             <div className="flex items-center">
               <CurrencyEuroIcon className="h-4 w-4 mr-1" />
               {formatSalary(offer.salary_min, offer.salary_max, offer.currency)}
             </div>
+            <div className="hidden sm:block text-gray-400">•</div>
             <div className="flex items-center">
               <CalendarIcon className="h-4 w-4 mr-1" />
               {formatDate(offer.published_at)}
             </div>
           </div>
 
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onSave(offer.id);
               }}
-              className={`btn-outline btn-sm ${isSaved ? 'text-yellow-600 border-yellow-600' : ''}`}
+              className={`btn-outline btn-sm flex-1 sm:flex-none ${isSaved ? 'text-yellow-600 border-yellow-600' : ''}`}
               title={isSaved ? 'Retirer des favoris' : 'Ajouter aux favoris'}
             >
               {isSaved ? (
@@ -155,10 +197,11 @@ const OfferCard: React.FC<OfferCardProps> = ({
                 console.log('Bouton Détails cliqué pour:', offer.title);
                 onSelect(offer);
               }}
-              className="btn-outline btn-sm"
+              className="btn-outline btn-sm flex-1 sm:flex-none"
             >
               <EyeIcon className="h-4 w-4 mr-1" />
-              Détails
+              <span className="hidden sm:inline">Détails</span>
+              <span className="sm:hidden">Voir</span>
             </button>
 
             <button
@@ -166,7 +209,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
                 e.stopPropagation();
                 onApply(offer.id);
               }}
-              className="btn-primary btn-sm"
+              className="btn-primary btn-sm flex-1 sm:flex-none"
             >
               Postuler
             </button>

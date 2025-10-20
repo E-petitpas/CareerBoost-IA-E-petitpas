@@ -28,9 +28,12 @@ const OfferSearch: React.FC = () => {
   const loadSavedOffers = async () => {
     try {
       const response = await apiService.getSavedOffers();
-      setSavedOffers(new Set(response.data.map((offer: any) => offer.job_offer_id)));
+      // response.data peut être un array ou undefined
+      const savedOfferIds = response?.data?.map((offer: any) => offer.job_offer_id) || [];
+      setSavedOffers(new Set(savedOfferIds));
     } catch (err) {
       console.error('Erreur lors du chargement des offres sauvegardées:', err);
+      setSavedOffers(new Set()); // Initialiser avec un Set vide en cas d'erreur
     }
   };
 

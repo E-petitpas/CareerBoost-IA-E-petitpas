@@ -89,17 +89,17 @@ const OffersLayout: React.FC<OffersLayoutProps> = ({
           {renderOffersList()}
         </div>
       ) : (
-        // Vue avec détails : Layout deux colonnes
-        <div className="flex gap-6 h-full">
+        // Vue avec détails : Layout responsive (colonne sur mobile, deux colonnes sur desktop)
+        <div className="flex flex-col lg:flex-row gap-6 h-full">
           {/* Liste des offres - Colonne de gauche avec scroll indépendant */}
-          <div className="w-1/2 flex-shrink-0">
+          <div className="w-full lg:w-1/2 flex-shrink-0">
             <div className="overflow-y-auto custom-scrollbar pr-2" style={{ height: 'calc(100vh - 200px)' }}>
               {renderOffersList()}
             </div>
           </div>
 
           {/* Détails de l'offre - Colonne de droite sticky */}
-          <div className="w-1/2 flex-shrink-0 animate-slide-in-right animate-fade-in">
+          <div className="w-full lg:w-1/2 flex-shrink-0 animate-slide-in-right animate-fade-in">
             <div className="sticky top-0 overflow-y-auto custom-scrollbar" style={{ height: 'calc(100vh - 200px)' }}>
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                 <OfferDetails
