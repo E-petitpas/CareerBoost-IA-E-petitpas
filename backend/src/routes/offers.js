@@ -314,6 +314,18 @@ router.post('/', authenticateToken, requireRole('RECRUITER'), validate(offerSche
     return res.status(403).json({ error: 'Votre entreprise doit être validée pour publier des offres' });
   }
 
+  // Générer un hash de déduplication pour les offres internes
+  const crypto = require('crypto');
+  const generateInternalDedupHash = (offerData, companyId) => {
+    const title = (offerData.title || '').toLowerCase().trim();
+    const company = companyId || '';
+    const location = (offerData.city || 'unknown').toLowerCase().trim();
+    const description = (offerData.description || '').toLowerCase().trim().substring(0, 100); // Premiers 100 caractères
+
+    const key = `internal|${title}|${company}|${location}|${description}`;
+    return crypto.createHash('sha256').update(key, 'utf8').digest('hex');
+  };
+
   // Créer l'offre (ACTIVE mais en attente de validation admin selon cahier des charges)
   const offerToInsert = {
     ...offerData,
@@ -321,6 +333,7 @@ router.post('/', authenticateToken, requireRole('RECRUITER'), validate(offerSche
     source: 'INTERNAL',
     status: 'ACTIVE',
     admin_status: 'PENDING', // ✅ Nouvelles offres en attente de validation admin
+    dedup_hash: generateInternalDedupHash(offerData, userCompany.company_id),
     // Note: L'offre est créée mais nécessite validation admin avant d'être visible aux candidats
   };
 
@@ -334,6 +347,14 @@ router.post('/', authenticateToken, requireRole('RECRUITER'), validate(offerSche
 
   if (offerError) {
     console.error('Erreur création offre:', offerError);
+
+    // Gestion spécifique des erreurs de contrainte unique (très rare pour les offres internes)
+    if (offerError.code === '23505' && offerError.message.includes('unique_dedup_hash')) {
+      return res.status(409).json({
+        error: 'Une offre similaire existe déjà. Veuillez modifier le titre ou la description.'
+      });
+    }
+
     return res.status(500).json({ error: 'Erreur lors de la création de l\'offre' });
   }
 
