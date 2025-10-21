@@ -201,8 +201,21 @@ class FranceTravailService {
    */
   generateDedupHash(offer) {
     const crypto = require('crypto');
-    const key = `${offer.intitule}_${offer.entreprise?.nom || 'unknown'}_${offer.lieuTravail?.libelle || 'unknown'}_${offer.id}`;
-    return crypto.createHash('md5').update(key.toLowerCase()).digest('hex');
+
+    // Normaliser les données pour éviter les variations mineures
+    const title = (offer.intitule || '').toLowerCase().trim();
+    const company = (offer.entreprise?.nom || 'unknown').toLowerCase().trim();
+    const location = (offer.lieuTravail?.libelle || 'unknown').toLowerCase().trim();
+    const offerId = offer.id || '';
+
+    // Créer une clé unique basée sur les éléments essentiels
+    const key = `${title}|${company}|${location}|${offerId}`;
+
+    // Utiliser SHA-256 pour une meilleure distribution et éviter les collisions
+    const hash = crypto.createHash('sha256').update(key, 'utf8').digest('hex');
+
+    console.log(`Hash généré pour "${title}": ${hash.substring(0, 16)}...`);
+    return hash;
   }
 
   /**
