@@ -235,7 +235,28 @@ class OfferAggregationService {
         console.log(`   - ${requiredSkills.length} compétences obligatoires`);
         console.log(`   - ${optionalSkills.length} compétences optionnelles`);
       } else {
-        console.log(`⚠️ Aucune compétence matchée pour l'offre ${offerId}`);
+        console.log(`⚠️ Aucune compétence matchée pour l'offre ${offerId}, tentative avec IA...`);
+
+        // Fallback avec IA
+        try {
+          const aiSkills = await skillsParsingService.parseSkillsWithAI(description, title, supabase);
+
+          if (aiSkills.length > 0) {
+            // Associer les compétences IA à la base de données
+            const aiMatchedSkills = await skillsParsingService.matchSkillsToDatabase(aiSkills, supabase);
+
+            if (aiMatchedSkills.length > 0) {
+              await skillsParsingService.updateOfferSkills(offerId, aiMatchedSkills, supabase);
+              console.log(`🤖 Offre ${offerId} mise à jour avec ${aiMatchedSkills.length} compétences via IA`);
+            } else {
+              console.log(`⚠️ Compétences IA non matchées en base pour l'offre ${offerId}`);
+            }
+          } else {
+            console.log(`⚠️ IA n'a trouvé aucune compétence pour l'offre ${offerId}`);
+          }
+        } catch (aiError) {
+          console.error('❌ Erreur fallback IA:', aiError);
+        }
       }
     } catch (error) {
       console.error('Erreur lors de l\'extraction des compétences:', error);

@@ -1,28 +1,37 @@
 const { supabase } = require('../config/supabase');
 
-// Référentiel de compétences prédéfinies
+// Référentiel de compétences prédéfinies (synchronisé avec skillsParsingService.js)
 const predefinedSkills = [
   // Langages de programmation
+  { slug: 'java', display_name: 'Java' },
   { slug: 'javascript', display_name: 'JavaScript' },
   { slug: 'typescript', display_name: 'TypeScript' },
   { slug: 'python', display_name: 'Python' },
-  { slug: 'java', display_name: 'Java' },
-  { slug: 'csharp', display_name: 'C#' },
   { slug: 'php', display_name: 'PHP' },
-  { slug: 'ruby', display_name: 'Ruby' },
+  { slug: 'csharp', display_name: 'C#' },
+  { slug: 'cpp', display_name: 'C++' },
   { slug: 'go', display_name: 'Go' },
   { slug: 'rust', display_name: 'Rust' },
-  { slug: 'swift', display_name: 'Swift' },
   { slug: 'kotlin', display_name: 'Kotlin' },
+  { slug: 'ruby', display_name: 'Ruby' },
+  { slug: 'swift', display_name: 'Swift' },
   { slug: 'dart', display_name: 'Dart' },
+
+  // Frameworks Java
+  { slug: 'spring', display_name: 'Spring' },
+  { slug: 'spring-boot', display_name: 'Spring Boot' },
+  { slug: 'hibernate', display_name: 'Hibernate' },
+  { slug: 'quarkus', display_name: 'Quarkus' },
+  { slug: 'jakarta-ee', display_name: 'Jakarta EE' },
+  { slug: 'java-ee', display_name: 'Java EE' },
 
   // Frameworks Frontend
   { slug: 'react', display_name: 'React' },
-  { slug: 'vue', display_name: 'Vue.js' },
+  { slug: 'vue-js', display_name: 'Vue.js' },
   { slug: 'angular', display_name: 'Angular' },
-  { slug: 'svelte', display_name: 'Svelte' },
   { slug: 'nextjs', display_name: 'Next.js' },
   { slug: 'nuxtjs', display_name: 'Nuxt.js' },
+  { slug: 'svelte', display_name: 'Svelte' },
 
   // Frameworks Backend
   { slug: 'nodejs', display_name: 'Node.js' },
@@ -30,24 +39,105 @@ const predefinedSkills = [
   { slug: 'nestjs', display_name: 'NestJS' },
   { slug: 'django', display_name: 'Django' },
   { slug: 'flask', display_name: 'Flask' },
-  { slug: 'spring', display_name: 'Spring Boot' },
   { slug: 'laravel', display_name: 'Laravel' },
   { slug: 'rails', display_name: 'Ruby on Rails' },
 
   // Bases de données
-  { slug: 'mysql', display_name: 'MySQL' },
   { slug: 'postgresql', display_name: 'PostgreSQL' },
+  { slug: 'mysql', display_name: 'MySQL' },
   { slug: 'mongodb', display_name: 'MongoDB' },
   { slug: 'redis', display_name: 'Redis' },
   { slug: 'elasticsearch', display_name: 'Elasticsearch' },
   { slug: 'sqlite', display_name: 'SQLite' },
 
-  // DevOps & Cloud
+  // DevOps
   { slug: 'docker', display_name: 'Docker' },
   { slug: 'kubernetes', display_name: 'Kubernetes' },
-  { slug: 'aws', display_name: 'Amazon Web Services' },
-  { slug: 'azure', display_name: 'Microsoft Azure' },
+  { slug: 'jenkins', display_name: 'Jenkins' },
+  { slug: 'gitlab-ci', display_name: 'GitLab CI' },
+  { slug: 'github-actions', display_name: 'GitHub Actions' },
+
+  // Cloud
+  { slug: 'aws', display_name: 'AWS' },
+  { slug: 'azure', display_name: 'Azure' },
   { slug: 'gcp', display_name: 'Google Cloud Platform' },
+
+  // Méthodologies
+  { slug: 'agile', display_name: 'Agile' },
+  { slug: 'scrum', display_name: 'Scrum' },
+  { slug: 'kanban', display_name: 'Kanban' },
+  { slug: 'clean-code', display_name: 'Clean Code' },
+  { slug: 'tdd', display_name: 'TDD' },
+
+  // Systèmes d'exploitation
+  { slug: 'windows', display_name: 'Windows' },
+  { slug: 'windows-10', display_name: 'Windows 10' },
+  { slug: 'windows-11', display_name: 'Windows 11' },
+  { slug: 'windows-server', display_name: 'Windows Server' },
+  { slug: 'linux', display_name: 'Linux' },
+  { slug: 'ubuntu', display_name: 'Ubuntu' },
+  { slug: 'centos', display_name: 'CentOS' },
+  { slug: 'red-hat', display_name: 'Red Hat' },
+
+  // Infrastructure et réseaux
+  { slug: 'active-directory', display_name: 'Active Directory' },
+  { slug: 'dns', display_name: 'DNS' },
+  { slug: 'dhcp', display_name: 'DHCP' },
+  { slug: 'tcp-ip', display_name: 'TCP/IP' },
+  { slug: 'vpn', display_name: 'VPN' },
+  { slug: 'vlan', display_name: 'VLAN' },
+  { slug: 'firewall', display_name: 'Firewall' },
+  { slug: 'gpo', display_name: 'GPO' },
+
+  // Virtualisation et conteneurs
+  { slug: 'citrix', display_name: 'Citrix' },
+  { slug: 'xenapp', display_name: 'XenApp' },
+  { slug: 'xendesktop', display_name: 'XenDesktop' },
+  { slug: 'citrix-workspace', display_name: 'Citrix Workspace' },
+  { slug: 'vmware', display_name: 'VMware' },
+  { slug: 'hyper-v', display_name: 'Hyper-V' },
+  { slug: 'virtualbox', display_name: 'VirtualBox' },
+
+  // Outils de déploiement et gestion
+  { slug: 'sccm', display_name: 'SCCM' },
+  { slug: 'intune', display_name: 'Microsoft Intune' },
+  { slug: 'mdt', display_name: 'MDT' },
+  { slug: 'wsus', display_name: 'WSUS' },
+  { slug: 'powershell', display_name: 'PowerShell' },
+  { slug: 'batch', display_name: 'Batch' },
+
+  // Outils de ticketing et ITSM
+  { slug: 'glpi', display_name: 'GLPI' },
+  { slug: 'servicenow', display_name: 'ServiceNow' },
+  { slug: 'remedy', display_name: 'BMC Remedy' },
+  { slug: 'itil', display_name: 'ITIL' },
+  { slug: 'freshdesk', display_name: 'Freshdesk' },
+  { slug: 'zendesk', display_name: 'Zendesk' },
+
+  // Sécurité
+  { slug: 'antivirus', display_name: 'Antivirus' },
+  { slug: 'endpoint-protection', display_name: 'Endpoint Protection' },
+  { slug: 'bitlocker', display_name: 'BitLocker' },
+  { slug: 'pki', display_name: 'PKI' },
+  { slug: 'ssl', display_name: 'SSL/TLS' },
+
+  // Matériel et périphériques
+  { slug: 'serveur', display_name: 'Serveur' },
+  { slug: 'imprimante', display_name: 'Imprimante' },
+  { slug: 'serveur-impression', display_name: 'Serveur d\'impression' },
+  { slug: 'switch', display_name: 'Switch' },
+  { slug: 'routeur', display_name: 'Routeur' },
+
+  // Outils de développement et versioning
+  { slug: 'git', display_name: 'Git' },
+  { slug: 'jira', display_name: 'Jira' },
+  { slug: 'confluence', display_name: 'Confluence' },
+
+  // Monitoring et supervision
+  { slug: 'nagios', display_name: 'Nagios' },
+  { slug: 'zabbix', display_name: 'Zabbix' },
+  { slug: 'prtg', display_name: 'PRTG' },
+  { slug: 'snmp', display_name: 'SNMP' },
   { slug: 'terraform', display_name: 'Terraform' },
   { slug: 'ansible', display_name: 'Ansible' },
   { slug: 'jenkins', display_name: 'Jenkins' },
