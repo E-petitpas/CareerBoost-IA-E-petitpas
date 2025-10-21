@@ -193,6 +193,41 @@ La lettre doit être convaincante et montrer pourquoi ce candidat est le bon cho
       throw new Error('Erreur lors de l\'amélioration du texte avec l\'IA');
     }
   }
+
+  /**
+   * Génère du texte avec l'IA à partir d'un prompt
+   */
+  async generateText(prompt, options = {}) {
+    try {
+      const {
+        model = "gpt-3.5-turbo",
+        maxTokens = 1000,
+        temperature = 0.7,
+        systemMessage = "Tu es un assistant IA spécialisé dans l'analyse de texte."
+      } = options;
+
+      const response = await this.openai.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: "system",
+            content: systemMessage
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: maxTokens,
+        temperature
+      });
+
+      return response.choices[0].message.content;
+    } catch (error) {
+      console.error('Erreur génération texte IA:', error);
+      throw new Error('Erreur lors de la génération de texte avec l\'IA');
+    }
+  }
 }
 
 // Instance singleton

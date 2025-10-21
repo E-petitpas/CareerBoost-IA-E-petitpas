@@ -2,7 +2,7 @@
  * Service pour parser automatiquement les compétences depuis les descriptions d'offres
  */
 
-const aiService = require('./aiService');
+const { aiService } = require('./aiService');
 
 class SkillsParsingService {
   constructor() {
