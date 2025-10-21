@@ -8,9 +8,9 @@ const router = express.Router();
 
 // Rechercher des offres (accessible à tous les utilisateurs authentifiés)
 router.get('/search', authenticateToken, validate(offerSchemas.search), asyncHandler(async (req, res) => {
-  const { near, radius, minScore, contract_type, experience_min, salary_min, page, limit } = req.query;
+  const { near, radius, minScore, contract_type, experience_min, salary_min, source, page, limit } = req.query;
 
-  console.log('Recherche offres candidats - Paramètres:', { near, radius, minScore, contract_type, experience_min, salary_min, page, limit });
+  console.log('Recherche offres candidats - Paramètres:', { near, radius, minScore, contract_type, experience_min, salary_min, source, page, limit });
 
   let query = supabase
     .from('job_offers')
@@ -66,6 +66,10 @@ router.get('/search', authenticateToken, validate(offerSchemas.search), asyncHan
 
   if (salary_min !== undefined) {
     query = query.gte('salary_min', salary_min);
+  }
+
+  if (source) {
+    query = query.eq('source', source);
   }
 
   // Pagination

@@ -5,7 +5,8 @@ import {
   SparklesIcon,
   EyeIcon,
   ArrowUpTrayIcon,
-  DocumentArrowUpIcon
+  DocumentArrowUpIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 import apiService from '../../services/api';
 
@@ -16,10 +17,8 @@ interface DocumentsSectionProps {
 
 const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }) => {
   const [isGeneratingCV, setIsGeneratingCV] = useState(false);
-  const [isGeneratingLM, setIsGeneratingLM] = useState(false);
   const [isUploadingCV, setIsUploadingCV] = useState(false);
   const [cvUrl, setCvUrl] = useState<string | null>(profile?.cv_url || null);
-  const [lmUrl, setLmUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -45,37 +44,17 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
     try {
       const response = await apiService.generateCV();
       setCvUrl(response.cv_url);
-      setSuccess('CV généré avec succès !');
+      setSuccess('✨ CV généré avec succès ! Votre profil a été transformé en un CV professionnel.');
       onUpdate(); // Rafraîchir le profil
     } catch (err: any) {
       console.error('Erreur génération CV:', err);
-      setError(err.response?.data?.error || 'Erreur lors de la génération du CV');
+      setError(err.response?.data?.error || '❌ Erreur lors de la génération du CV. Veuillez réessayer.');
     } finally {
       setIsGeneratingCV(false);
     }
   };
 
-  const handleGenerateLM = async () => {
-    // Pour l'instant, on va demander à l'utilisateur de choisir une offre
-    // Dans une version future, cela sera intégré dans le processus de candidature
-    const offerId = prompt('Entrez l\'ID de l\'offre pour laquelle générer une lettre de motivation:');
-    if (!offerId) return;
 
-    setIsGeneratingLM(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const response = await apiService.generateCoverLetter(offerId);
-      setLmUrl(response.lm_url);
-      setSuccess('Lettre de motivation générée avec succès !');
-    } catch (err: any) {
-      console.error('Erreur génération LM:', err);
-      setError(err.response?.data?.error || 'Erreur lors de la génération de la lettre de motivation');
-    } finally {
-      setIsGeneratingLM(false);
-    }
-  };
 
   const handleViewDocument = (url: string) => {
     if (url) {
@@ -119,12 +98,12 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
 
       const response = await apiService.uploadCV(formData);
       setCvUrl(response.cv_url);
-      setSuccess(`CV "${response.filename}" uploadé avec succès !`);
+      setSuccess(`✅ CV "${response.filename}" uploadé avec succès ! L'extraction automatique des compétences et expériences est en cours...`);
       onUpdate(); // Rafraîchir le profil
 
     } catch (err: any) {
       console.error('Erreur upload CV:', err);
-      setError(err.response?.data?.error || 'Erreur lors de l\'upload du CV');
+      setError(err.response?.data?.error || '❌ Erreur lors de l\'upload du CV. Veuillez réessayer.');
     } finally {
       setIsUploadingCV(false);
       // Reset input
@@ -139,19 +118,35 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
           Génération de documents avec IA
         </h3>
         <p className="text-sm text-gray-600">
-          Générez automatiquement votre CV et vos lettres de motivation personnalisées grâce à l'intelligence artificielle.
+          Générez automatiquement votre CV grâce à l'intelligence artificielle.
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-400 rounded-md shadow-sm animate-fade-in">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-red-800">{error}</p>
+            </div>
+          </div>
         </div>
       )}
 
       {success && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
-          <p className="text-sm text-green-600">{success}</p>
+        <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-400 rounded-md shadow-sm animate-fade-in">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <CheckCircleIcon className="h-5 w-5 text-green-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-green-800">{success}</p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -191,108 +186,129 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Section CV */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="flex items-center mb-4">
-            <DocumentTextIcon className="h-6 w-6 text-blue-600 mr-2" />
-            <h4 className="text-lg font-medium text-gray-900">Curriculum Vitae</h4>
+      {/* Section CV - Affichage direct */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <DocumentTextIcon className="h-6 w-6 text-blue-600 mr-3" />
+              <div>
+                <h4 className="text-lg font-medium text-gray-900">Mon CV</h4>
+                <p className="text-sm text-gray-600">Curriculum Vitae actuel</p>
+              </div>
+            </div>
+            {(cvUrl || profile?.cv_url) && (
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => handleDownloadDocument(cvUrl || profile?.cv_url, 'mon-cv.html')}
+                  className="inline-flex items-center px-3 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
+                  Télécharger
+                </button>
+                <button
+                  onClick={() => handleViewDocument(cvUrl || profile?.cv_url)}
+                  className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md shadow-sm text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <EyeIcon className="h-4 w-4 mr-2" />
+                  Ouvrir
+                </button>
+              </div>
+            )}
           </div>
+        </div>
 
-          <p className="text-sm text-gray-600 mb-4">
-            Générez un CV professionnel basé sur votre profil et vos expériences.
-          </p>
+        {/* Contenu principal du CV */}
+        <div className="flex-1">
+          {(cvUrl || profile?.cv_url) ? (
+            // Affichage direct du CV
+            <div className="h-[800px] bg-gray-50">
+              {(cvUrl || profile?.cv_url).endsWith('.html') ? (
+                // CV généré (HTML) - affichage direct dans iframe
+                <iframe
+                  src={`http://localhost:3001${cvUrl || profile?.cv_url}`}
+                  className="w-full h-full border-0 rounded-b-lg"
+                  title="Mon CV"
+                />
+              ) : (
+                // CV uploadé (PDF/DOC) - affichage direct
+                <div className="relative h-full bg-white overflow-hidden">
+                  {/* Badge de statut en haut */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 shadow-sm">
+                      <div className="flex items-center">
+                        <CheckCircleIcon className="h-4 w-4 text-green-600 mr-2" />
+                        <span className="text-sm font-medium text-green-800">
+                          CV disponible pour vos candidatures
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-          <div className="space-y-3">
+                  {/* Affichage direct du PDF */}
+                  <iframe
+                    src={`http://localhost:3001${cvUrl || profile?.cv_url}`}
+                    className="w-full h-full border-0 rounded-b-lg"
+                    title="Mon CV"
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            // Aucun CV - Invitation à en générer un
+            <div className="flex flex-col items-center justify-center h-[400px] p-8 bg-gray-50 rounded-b-lg">
+              <div className="text-center">
+                <DocumentTextIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Aucun CV disponible
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Générez votre CV professionnel avec l'IA ou uploadez un CV existant.
+                </p>
+                <button
+                  onClick={handleGenerateCV}
+                  disabled={isGeneratingCV}
+                  className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingCV ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                      Génération en cours...
+                    </>
+                  ) : (
+                    <>
+                      <SparklesIcon className="h-5 w-5 mr-3" />
+                      Générer mon CV avec IA
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Bouton de régénération pour CV existant */}
+        {(cvUrl || profile?.cv_url) && (
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
             <button
               onClick={handleGenerateCV}
               disabled={isGeneratingCV}
-              className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGeneratingCV ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Génération en cours...
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                  Régénération en cours...
                 </>
               ) : (
                 <>
                   <SparklesIcon className="h-4 w-4 mr-2" />
-                  Générer mon CV avec IA
+                  Régénérer mon CV avec IA
                 </>
               )}
             </button>
-
-            {(cvUrl || profile?.cv_url) && (
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => handleViewDocument(cvUrl || profile?.cv_url)}
-                  className="flex-1 flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <EyeIcon className="h-4 w-4 mr-2" />
-                  Voir
-                </button>
-                <button
-                  onClick={() => handleDownloadDocument(cvUrl || profile?.cv_url, 'mon-cv.html')}
-                  className="flex-1 flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
-                  Télécharger
-                </button>
-              </div>
-            )}
           </div>
-        </div>
-
-        {/* Section Lettre de Motivation */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="flex items-center mb-4">
-            <DocumentTextIcon className="h-6 w-6 text-green-600 mr-2" />
-            <h4 className="text-lg font-medium text-gray-900">Lettre de Motivation</h4>
-          </div>
-
-          <p className="text-sm text-gray-600 mb-4">
-            Générez une lettre de motivation personnalisée pour une offre spécifique.
-          </p>
-
-          <div className="space-y-3">
-            <button
-              onClick={handleGenerateLM}
-              disabled={isGeneratingLM}
-              className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isGeneratingLM ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Génération en cours...
-                </>
-              ) : (
-                <>
-                  <SparklesIcon className="h-4 w-4 mr-2" />
-                  Générer une LM avec IA
-                </>
-              )}
-            </button>
-
-            {lmUrl && (
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => handleViewDocument(lmUrl)}
-                  className="flex-1 flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <EyeIcon className="h-4 w-4 mr-2" />
-                  Voir
-                </button>
-                <button
-                  onClick={() => handleDownloadDocument(lmUrl, 'ma-lettre-motivation.html')}
-                  className="flex-1 flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
-                  Télécharger
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
@@ -301,7 +317,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
           <li>• Assurez-vous que votre profil est complet avant de générer vos documents</li>
           <li>• Ajoutez des compétences et expériences détaillées pour un meilleur résultat</li>
           <li>• Vous pouvez régénérer vos documents à tout moment après avoir mis à jour votre profil</li>
-          <li>• Les lettres de motivation sont personnalisées selon l'offre d'emploi</li>
+          <li>• Vous pouvez générer des lettres de motivation personnalisées directement depuis les offres d'emploi</li>
         </ul>
       </div>
     </div>

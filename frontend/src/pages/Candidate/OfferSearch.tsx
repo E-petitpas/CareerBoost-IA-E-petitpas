@@ -155,6 +155,27 @@ const OfferSearch: React.FC = () => {
     }
   };
 
+  const handleGenerateLM = async (offerId: string) => {
+    try {
+      console.log('Génération de LM pour offre:', offerId);
+
+      const result = await apiService.generateCoverLetter(offerId);
+      console.log('LM générée:', result);
+
+      alert('🎉 Lettre de motivation générée avec succès !');
+
+      // Ouvrir la LM dans un nouvel onglet
+      if (result.lm_url) {
+        const fullUrl = result.lm_url.startsWith('http') ? result.lm_url : `http://localhost:3001${result.lm_url}`;
+        window.open(fullUrl, '_blank');
+      }
+
+    } catch (err: any) {
+      console.error('Erreur génération LM:', err);
+      alert('❌ ' + (err.response?.data?.error || err.message || 'Erreur lors de la génération de la lettre de motivation'));
+    }
+  };
+
   const clearAllFilters = () => {
     setFilters({
       page: 1,
@@ -166,16 +187,14 @@ const OfferSearch: React.FC = () => {
   return (
     <div className="bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Recherche d'offres d'emploi
-          </h1>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-3xl font-bold text-gray-900">
+          Recherche d'offres d'emploi
+        </h1>
       </div>
 
       {/* SearchBar sticky */}
-      <div className="sticky top-0 z-10">
+      <div className="sticky top-0 max-w-7xl mx-auto px-8 z-20">
         <SearchBar
           filters={filters}
           onFiltersChange={handleFilterChange}
@@ -188,7 +207,7 @@ const OfferSearch: React.FC = () => {
 
       {/* Layout principal avec les offres */}
       <div className="pb-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <OffersLayout
             offers={offers}
             selectedOffer={selectedOffer}
@@ -199,6 +218,7 @@ const OfferSearch: React.FC = () => {
             onOfferSave={toggleSaveOffer}
             onOfferApply={handleApply}
             onCloseDetails={handleCloseDetails}
+            onGenerateLM={handleGenerateLM}
           />
         </div>
       </div>

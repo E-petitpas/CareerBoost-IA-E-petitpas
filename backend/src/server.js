@@ -80,8 +80,15 @@ app.use('/api/applications', authenticateToken, applicationRoutes);
 app.use('/api/notifications', authenticateToken, notificationRoutes);
 app.use('/api/skills', skillsRoutes);
 
-// Static files for uploads
-app.use('/uploads', express.static('uploads'));
+// Static files for uploads with CORS headers
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production'
+    ? 'https://your-frontend-domain.com'
+    : 'http://localhost:3000');
+  res.header('Access-Control-Allow-Methods', 'GET');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+}, express.static('uploads'));
 
 // 404 handler
 app.use('*', (req, res) => {

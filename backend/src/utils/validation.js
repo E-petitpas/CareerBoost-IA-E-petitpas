@@ -102,6 +102,7 @@ const offerSchemas = {
     contract_type: Joi.string().valid('CDI', 'CDD', 'STAGE', 'ALTERNANCE', 'INTERIM', 'FREELANCE', 'TEMPS_PARTIEL', 'TEMPS_PLEIN', 'OTHER').optional(),
     experience_min: Joi.number().min(0).max(50).optional(),
     salary_min: Joi.number().min(0).optional(),
+    source: Joi.string().valid('INTERNAL', 'EXTERNAL').optional(),
     page: Joi.number().min(1).default(1),
     limit: Joi.number().min(1).max(50).default(20)
   })

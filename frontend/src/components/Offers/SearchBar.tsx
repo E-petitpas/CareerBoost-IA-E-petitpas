@@ -56,11 +56,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
       filters.experience_min ||
       filters.experience_max ||
       (filters.skills && filters.skills.length > 0) ||
+      filters.minScore ||
+      filters.source ||
       filters.remote_work;
   };
 
   return (
-    <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm max-w-7xl mx-auto">
+    <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm rounded-md">
       <div className="p-4">
         {/* Filtres de base */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
@@ -245,6 +247,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   <option value="70">70%+</option>
                   <option value="80">80%+</option>
                   <option value="90">90%+</option>
+                </select>
+              </div>
+
+              {/* Type de ressource */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-700">Type de ressource</h4>
+                <select
+                  className="form-select"
+                  value={filters.source || ''}
+                  onChange={(e) => onFiltersChange({ source: e.target.value as 'INTERNAL' | 'EXTERNAL' | undefined })}
+                >
+                  <option value="">Toutes les offres</option>
+                  <option value="INTERNAL">Offres internes</option>
+                  <option value="EXTERNAL">France Travail</option>
                 </select>
               </div>
             </div>

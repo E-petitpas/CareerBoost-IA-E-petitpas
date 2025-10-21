@@ -778,6 +778,8 @@ router.post('/lm/generate', asyncHandler(async (req, res) => {
     const candidateId = req.user.id;
     const { offer_id, custom_message } = req.body;
 
+    console.log('POST /lm/generate - Candidat ID:', candidateId, 'Offre ID:', offer_id);
+
     if (!offer_id) {
       return res.status(400).json({ error: 'ID de l\'offre requis' });
     }
@@ -790,6 +792,7 @@ router.post('/lm/generate', asyncHandler(async (req, res) => {
       .single();
 
     if (userError) {
+      console.error('Erreur récupération utilisateur:', userError);
       return res.status(404).json({ error: 'Utilisateur non trouvé' });
     }
 
@@ -800,6 +803,7 @@ router.post('/lm/generate', asyncHandler(async (req, res) => {
       .single();
 
     if (profileError) {
+      console.error('Erreur récupération profil:', profileError);
       return res.status(404).json({ error: 'Profil candidat non trouvé' });
     }
 
@@ -817,8 +821,11 @@ router.post('/lm/generate', asyncHandler(async (req, res) => {
       .single();
 
     if (offerError) {
+      console.error('Erreur récupération offre:', offerError);
       return res.status(404).json({ error: 'Offre non trouvée' });
     }
+
+    console.log('Données récupérées - User:', user?.name, 'Offre:', offer?.title);
 
     const data = {
       user,
@@ -828,9 +835,11 @@ router.post('/lm/generate', asyncHandler(async (req, res) => {
     };
 
     // Générer la LM avec IA
+    console.log('Génération de la lettre de motivation...');
     const DocumentService = require('../services/documentService');
     const documentService = new DocumentService();
     const result = await documentService.generateCoverLetter(data);
+    console.log('LM générée:', result);
 
     // Créer un document dans la table documents
     const { data: document, error: docError } = await supabase
@@ -942,6 +951,95 @@ router.post('/cv/upload', upload.single('cv'), asyncHandler(async (req, res) => 
 
     if (updateError) {
       console.warn('Erreur mise à jour profil avec CV:', updateError);
+    }
+
+    // Extraction automatique des compétences et expériences
+    try {
+      console.log('🔍 Début extraction compétences et expériences depuis le CV...');
+
+      const DocumentParsingService = require('../services/documentParsingService');
+      const AIService = require('../services/aiService');
+
+      const documentParser = new DocumentParsingService();
+      const aiService = new AIService();
+
+      // Extraire le texte du CV
+      const cvText = await documentParser.extractTextFromDocument(filePath, req.file.mimetype);
+      const cleanedText = documentParser.cleanExtractedText(cvText);
+
+      if (cleanedText.length > 100) { // Vérifier qu'il y a du contenu
+        // Extraire les compétences et expériences avec l'IA
+        const { skills, experiences } = await aiService.extractSkillsAndExperiencesFromCV(cleanedText);
+
+        // Sauvegarder les compétences
+        if (skills && skills.length > 0) {
+          console.log(`💡 Sauvegarde de ${skills.length} compétences extraites...`);
+
+          for (const skill of skills) {
+            if (skill.name && skill.name.trim()) {
+              // Vérifier si la compétence existe déjà
+              const { data: existingSkill } = await supabase
+                .from('candidate_skills')
+                .select('id')
+                .eq('user_id', candidateId)
+                .eq('skill_name', skill.name.trim())
+                .single();
+
+              if (!existingSkill) {
+                await supabase
+                  .from('candidate_skills')
+                  .insert({
+                    user_id: candidateId,
+                    skill_name: skill.name.trim(),
+                    skill_level: skill.level || 3,
+                    skill_category: skill.category || 'autre',
+                    source: 'cv_extraction'
+                  });
+              }
+            }
+          }
+        }
+
+        // Sauvegarder les expériences
+        if (experiences && experiences.length > 0) {
+          console.log(`💼 Sauvegarde de ${experiences.length} expériences extraites...`);
+
+          for (const exp of experiences) {
+            if (exp.company && exp.position) {
+              // Vérifier si l'expérience existe déjà
+              const { data: existingExp } = await supabase
+                .from('experiences')
+                .select('id')
+                .eq('user_id', candidateId)
+                .eq('company', exp.company.trim())
+                .eq('position', exp.position.trim())
+                .single();
+
+              if (!existingExp) {
+                await supabase
+                  .from('experiences')
+                  .insert({
+                    user_id: candidateId,
+                    company: exp.company.trim(),
+                    position: exp.position.trim(),
+                    start_date: exp.start_date || null,
+                    end_date: exp.end_date || null,
+                    description: exp.description || '',
+                    location: exp.location || null,
+                    source: 'cv_extraction'
+                  });
+              }
+            }
+          }
+        }
+
+        console.log('✅ Extraction terminée avec succès');
+      } else {
+        console.log('⚠️ Pas assez de contenu textuel extrait pour l\'analyse');
+      }
+    } catch (extractionError) {
+      console.error('❌ Erreur lors de l\'extraction:', extractionError);
+      // Ne pas faire échouer l'upload si l'extraction échoue
     }
 
     res.json({

@@ -32,6 +32,8 @@ class SkillsParsingService {
       'react.js': { slug: 'react', display_name: 'React', category: 'Développement Web', weight: 3 },
       'vue': { slug: 'vue-js', display_name: 'Vue.js', category: 'Développement Web', weight: 3 },
       'vue.js': { slug: 'vue-js', display_name: 'Vue.js', category: 'Développement Web', weight: 3 },
+      'vuejs': { slug: 'vue-js', display_name: 'Vue.js', category: 'Développement Web', weight: 3 },
+      'vuejs3': { slug: 'vue-js', display_name: 'Vue.js', category: 'Développement Web', weight: 3 },
       'angular': { slug: 'angular', display_name: 'Angular', category: 'Développement Web', weight: 3 },
       'next.js': { slug: 'nextjs', display_name: 'Next.js', category: 'Développement Web', weight: 2 },
       'nuxt.js': { slug: 'nuxtjs', display_name: 'Nuxt.js', category: 'Développement Web', weight: 2 },
@@ -44,9 +46,13 @@ class SkillsParsingService {
       'node js': { slug: 'nodejs', display_name: 'Node.js', category: 'Développement Backend', weight: 3 },
       'express': { slug: 'express', display_name: 'Express.js', category: 'Développement Backend', weight: 2 },
       'nestjs': { slug: 'nestjs', display_name: 'NestJS', category: 'Développement Backend', weight: 2 },
+      '.net': { slug: 'dotnet', display_name: '.NET', category: 'Développement Backend', weight: 3 },
+      'dotnet': { slug: 'dotnet', display_name: '.NET', category: 'Développement Backend', weight: 3 },
       
       // Bases de données
       'postgresql': { slug: 'postgresql', display_name: 'PostgreSQL', category: 'Base de données', weight: 3 },
+      'postegresql': { slug: 'postgresql', display_name: 'PostgreSQL', category: 'Base de données', weight: 3 }, // Faute de frappe courante
+      'postgres': { slug: 'postgresql', display_name: 'PostgreSQL', category: 'Base de données', weight: 3 },
       'mysql': { slug: 'mysql', display_name: 'MySQL', category: 'Base de données', weight: 3 },
       'mongodb': { slug: 'mongodb', display_name: 'MongoDB', category: 'Base de données', weight: 2 },
       'redis': { slug: 'redis', display_name: 'Redis', category: 'Base de données', weight: 2 },
@@ -56,6 +62,7 @@ class SkillsParsingService {
       'docker': { slug: 'docker', display_name: 'Docker', category: 'DevOps', weight: 3 },
       'kubernetes': { slug: 'kubernetes', display_name: 'Kubernetes', category: 'DevOps', weight: 2 },
       'jenkins': { slug: 'jenkins', display_name: 'Jenkins', category: 'DevOps', weight: 2 },
+      'gitlab': { slug: 'gitlab', display_name: 'GitLab', category: 'DevOps', weight: 2 },
       'gitlab ci': { slug: 'gitlab-ci', display_name: 'GitLab CI', category: 'DevOps', weight: 2 },
       'github actions': { slug: 'github-actions', display_name: 'GitHub Actions', category: 'DevOps', weight: 2 },
       'git': { slug: 'git', display_name: 'Git', category: 'Outils de développement', weight: 2 },
@@ -63,6 +70,9 @@ class SkillsParsingService {
       'gradle': { slug: 'gradle', display_name: 'Gradle', category: 'Outils de développement', weight: 2 },
       'eclipse': { slug: 'eclipse', display_name: 'Eclipse', category: 'Outils de développement', weight: 2 },
       'intellij': { slug: 'intellij', display_name: 'IntelliJ IDEA', category: 'Outils de développement', weight: 2 },
+      'visual studio': { slug: 'visual-studio', display_name: 'Visual Studio', category: 'Outils de développement', weight: 2 },
+      'visual studiocode': { slug: 'visual-studio-code', display_name: 'Visual Studio Code', category: 'Outils de développement', weight: 2 },
+      'vscode': { slug: 'visual-studio-code', display_name: 'Visual Studio Code', category: 'Outils de développement', weight: 2 },
       
       // Cloud
       'aws': { slug: 'aws', display_name: 'AWS', category: 'Cloud', weight: 2 },
@@ -157,6 +167,7 @@ class SkillsParsingService {
       'confluence': { slug: 'confluence', display_name: 'Confluence', category: 'Outils', weight: 1 },
 
       // ERP et solutions métier
+      'sap': { slug: 'sap', display_name: 'SAP', category: 'ERP', weight: 3 },
       'sage x3': { slug: 'sage-x3', display_name: 'Sage X3', category: 'ERP', weight: 3 },
       'microsoft dynamics': { slug: 'microsoft-dynamics', display_name: 'Microsoft Dynamics', category: 'ERP', weight: 3 },
       'dynamics 365': { slug: 'dynamics-365', display_name: 'Dynamics 365', category: 'ERP', weight: 3 },
@@ -165,12 +176,75 @@ class SkillsParsingService {
       'dynamics ax': { slug: 'dynamics-ax', display_name: 'Dynamics AX', category: 'ERP', weight: 2 },
       'erp': { slug: 'erp', display_name: 'ERP', category: 'ERP', weight: 2 },
       'crm': { slug: 'crm', display_name: 'CRM', category: 'CRM', weight: 2 },
+      'gpms': { slug: 'gpms', display_name: 'GPMS', category: 'ERP', weight: 2 },
 
       // Monitoring et supervision
       'nagios': { slug: 'nagios', display_name: 'Nagios', category: 'Monitoring', weight: 2 },
       'zabbix': { slug: 'zabbix', display_name: 'Zabbix', category: 'Monitoring', weight: 2 },
       'prtg': { slug: 'prtg', display_name: 'PRTG', category: 'Monitoring', weight: 2 },
-      'snmp': { slug: 'snmp', display_name: 'SNMP', category: 'Monitoring', weight: 2 }
+      'centreon': { slug: 'centreon', display_name: 'Centreon', category: 'Monitoring', weight: 2 },
+      'snmp': { slug: 'snmp', display_name: 'SNMP', category: 'Monitoring', weight: 2 },
+
+      // SIRH et Paie
+      'sirh': { slug: 'sirh', display_name: 'SIRH', category: 'RH', weight: 3 },
+      'paie': { slug: 'paie', display_name: 'Paie', category: 'RH', weight: 3 },
+      'adp': { slug: 'adp', display_name: 'ADP', category: 'RH', weight: 2 },
+      'paramétrage': { slug: 'parametrage', display_name: 'Paramétrage', category: 'Configuration', weight: 2 },
+      'parametrage': { slug: 'parametrage', display_name: 'Paramétrage', category: 'Configuration', weight: 2 },
+
+      // Bureautique
+      'excel': { slug: 'excel', display_name: 'Excel', category: 'Bureautique', weight: 2 },
+      'word': { slug: 'word', display_name: 'Word', category: 'Bureautique', weight: 1 },
+      'powerpoint': { slug: 'powerpoint', display_name: 'PowerPoint', category: 'Bureautique', weight: 1 },
+      'outlook': { slug: 'outlook', display_name: 'Outlook', category: 'Bureautique', weight: 1 },
+      'access': { slug: 'access', display_name: 'Access', category: 'Bureautique', weight: 2 },
+      'visio': { slug: 'visio', display_name: 'Visio', category: 'Bureautique', weight: 2 },
+      'microsoft office': { slug: 'microsoft-office', display_name: 'Microsoft Office', category: 'Bureautique', weight: 2 },
+      'office': { slug: 'microsoft-office', display_name: 'Microsoft Office', category: 'Bureautique', weight: 2 },
+
+      // Support et assistance
+      'support technique': { slug: 'support-technique', display_name: 'Support Technique', category: 'Support', weight: 2 },
+      'assistance technique': { slug: 'assistance-technique', display_name: 'Assistance Technique', category: 'Support', weight: 2 },
+      'helpdesk': { slug: 'helpdesk', display_name: 'Helpdesk', category: 'Support', weight: 2 },
+      'help desk': { slug: 'helpdesk', display_name: 'Helpdesk', category: 'Support', weight: 2 },
+      'gestion incidents': { slug: 'gestion-incidents', display_name: 'Gestion d\'Incidents', category: 'Support', weight: 2 },
+      'hotline': { slug: 'hotline', display_name: 'Hotline', category: 'Support', weight: 2 },
+
+      // Gestion de projet
+      'gestion de projet': { slug: 'gestion-projet', display_name: 'Gestion de Projet', category: 'Management', weight: 3 },
+      'project management': { slug: 'gestion-projet', display_name: 'Gestion de Projet', category: 'Management', weight: 3 },
+      'pilotage projet': { slug: 'pilotage-projet', display_name: 'Pilotage de Projet', category: 'Management', weight: 3 },
+      'coordination projet': { slug: 'coordination-projet', display_name: 'Coordination de Projet', category: 'Management', weight: 2 },
+
+      // Data et analyse
+      'data analysis': { slug: 'data-analysis', display_name: 'Data Analysis', category: 'Data', weight: 3 },
+      'analyse de données': { slug: 'data-analysis', display_name: 'Data Analysis', category: 'Data', weight: 3 },
+      'gouvernance données': { slug: 'gouvernance-donnees', display_name: 'Gouvernance des Données', category: 'Data', weight: 3 },
+      'master data': { slug: 'master-data', display_name: 'Master Data', category: 'Data', weight: 3 },
+      'nettoyage données': { slug: 'nettoyage-donnees', display_name: 'Nettoyage de Données', category: 'Data', weight: 2 },
+
+      // Business Intelligence et Data Visualization
+      'power bi': { slug: 'power-bi', display_name: 'Power BI', category: 'Business Intelligence', weight: 3 },
+      'microsoft power bi': { slug: 'power-bi', display_name: 'Power BI', category: 'Business Intelligence', weight: 3 },
+      'powerbi': { slug: 'power-bi', display_name: 'Power BI', category: 'Business Intelligence', weight: 3 },
+      'tableau': { slug: 'tableau', display_name: 'Tableau', category: 'Business Intelligence', weight: 3 },
+      'qlik': { slug: 'qlik', display_name: 'Qlik', category: 'Business Intelligence', weight: 3 },
+      'qlikview': { slug: 'qlikview', display_name: 'QlikView', category: 'Business Intelligence', weight: 3 },
+      'qlik sense': { slug: 'qlik-sense', display_name: 'Qlik Sense', category: 'Business Intelligence', weight: 3 },
+      'data visualization': { slug: 'data-visualization', display_name: 'Data Visualization', category: 'Business Intelligence', weight: 2 },
+      'msbi': { slug: 'msbi', display_name: 'MSBI', category: 'Business Intelligence', weight: 3 },
+      'ssis': { slug: 'ssis', display_name: 'SSIS', category: 'Business Intelligence', weight: 3 },
+      'ssas': { slug: 'ssas', display_name: 'SSAS', category: 'Business Intelligence', weight: 3 },
+      'ssrs': { slug: 'ssrs', display_name: 'SSRS', category: 'Business Intelligence', weight: 3 },
+
+      // Maintenance et Support
+      'maintenance de matériel informatique': { slug: 'maintenance-materiel-informatique', display_name: 'Maintenance de matériel informatique', category: 'Support', weight: 2 },
+      'sécurité des systèmes d\'information': { slug: 'securite-systemes-information', display_name: 'Sécurité des systèmes d\'information', category: 'Sécurité', weight: 3 },
+
+      // API et Web Services
+      'api rest': { slug: 'api-rest', display_name: 'API REST', category: 'Développement Web', weight: 2 },
+      'rest api': { slug: 'api-rest', display_name: 'API REST', category: 'Développement Web', weight: 2 },
+      'restful': { slug: 'api-rest', display_name: 'API REST', category: 'Développement Web', weight: 2 }
     };
   }
 
@@ -195,7 +269,7 @@ class SkillsParsingService {
     this.findSkillsWithRegex(normalizedText, foundSkills, title);
 
     // 2. Détection spécifique dans les listes techniques
-    this.detectSkillsInTechnicalLists(description, foundSkills, title);
+    this.detectSkillsInTechnicalLists(description, foundSkills, title, normalizedText);
 
     // 3. Si peu de compétences trouvées, essayer une recherche plus flexible
     if (foundSkills.length < 3) {
@@ -257,7 +331,7 @@ class SkillsParsingService {
         const alreadyFound = foundSkills.find(skill => skill.slug === skillInfo.slug);
         if (!alreadyFound) {
           // Validation contextuelle pour éviter les faux positifs
-          if (this.isValidSkillInContext(keyword, normalizedText, skillInfo.category)) {
+          if (this.isValidSkillInContext(keyword, normalizedText)) {
             // Déterminer si la compétence est obligatoire ou optionnelle
             const isRequired = this.isSkillRequired(keyword, normalizedText, title);
 
@@ -279,16 +353,26 @@ class SkillsParsingService {
    * @param {string} originalText - Texte original (non normalisé)
    * @param {Array} foundSkills - Array des compétences déjà trouvées
    * @param {string} title - Titre de l'offre
+   * @param {string} normalizedText - Texte normalisé pour validation contextuelle
    */
-  detectSkillsInTechnicalLists(originalText, foundSkills, title) {
+  detectSkillsInTechnicalLists(originalText, foundSkills, title, normalizedText) {
     // Patterns pour identifier les listes techniques
     const listPatterns = [
-      /(?:environnement|technique|compétences?|maîtrise|connaissance)[^.!?]*:[^.!?]*((?:\s*-\s*[^.!?]*)+)/gi,
-      /(?:outils?|technologies?|systèmes?)[^.!?]*:[^.!?]*((?:\s*-\s*[^.!?]*)+)/gi,
-      // Pattern pour les listes entre parenthèses comme "(XenApp / XenDesktop / Citrix Workspace)"
-      /\([^)]*(?:xenapp|xendesktop|citrix|windows|dns|dhcp|sccm|intune|glpi|servicenow)[^)]*\)/gi,
-      // Pattern pour les listes séparées par des virgules ou slashes
-      /(?:citrix|windows|dns|dhcp|sccm|intune|glpi|servicenow)[^.!?]*(?:[,\/][^.!?]*){2,}/gi
+      // Listes avec deux-points
+      /(?:environnement|technique|compétences?|maîtrise|connaissance|outils?|technologies?)[^.!?]*:[^.!?]*((?:\s*-\s*[^.!?]*)+)/gi,
+
+      // Listes entre parenthèses - élargi pour BI
+      /\([^)]*(?:power\s*bi|tableau|qlik|excel|xenapp|xendesktop|citrix|windows|dns|dhcp|sccm|intune|glpi|servicenow|msbi|ssis|ssas|ssrs)[^)]*\)/gi,
+
+      // Listes séparées par des virgules ou slashes - élargi pour BI
+      /(?:power\s*bi|tableau|qlik|excel|citrix|windows|dns|dhcp|sccm|intune|glpi|servicenow|msbi|ssis|ssas|ssrs)[^.!?]*(?:[,\/][^.!?]*){1,}/gi,
+
+      // Pattern spécifique pour les compétences BI mentionnées ensemble
+      /(?:microsoft\s*)?power\s*bi[^.!?]*(?:[,\/][^.!?]*(?:tableau|qlik|excel))+/gi,
+      /(?:tableau|qlik)[^.!?]*(?:[,\/][^.!?]*(?:power\s*bi|excel))+/gi,
+
+      // Pattern pour les sections "Vous possédez" ou "Vous maîtrisez"
+      /(?:vous\s+(?:possédez|maîtrisez|avez))[^.!?]*(?:power\s*bi|tableau|qlik|excel|msbi)[^.!?]*/gi
     ];
 
     listPatterns.forEach(pattern => {
@@ -296,7 +380,7 @@ class SkillsParsingService {
       if (matches) {
         matches.forEach(match => {
           console.log(`🔍 Liste technique détectée: ${match}`);
-          this.extractSkillsFromTechnicalList(match, foundSkills, title);
+          this.extractSkillsFromTechnicalList(match, foundSkills, title, normalizedText);
         });
       }
     });
@@ -306,26 +390,51 @@ class SkillsParsingService {
    * Extrait les compétences d'une liste technique
    * @param {string} listText - Texte de la liste
    * @param {Array} foundSkills - Array des compétences déjà trouvées
+   * @param {string} title - Titre de l'offre
+   * @param {string} globalContext - Contexte global du texte pour validation
    */
-  extractSkillsFromTechnicalList(listText, foundSkills) {
-    // Séparer par les délimiteurs courants
+  extractSkillsFromTechnicalList(listText, foundSkills, title, globalContext) {
+    // Séparer par les délimiteurs courants, mais préserver les espaces dans les noms composés
     const items = listText.split(/[,\/\-\(\)]/);
 
     items.forEach(item => {
-      const cleanItem = item.trim().toLowerCase();
+      const cleanItem = item.trim();
+      const cleanItemLower = cleanItem.toLowerCase();
       if (cleanItem.length < 2) return; // Ignorer les éléments trop courts
 
+      // Recherche directe avec correspondance flexible pour les noms composés
       Object.entries(this.skillsKeywords).forEach(([keyword, skillInfo]) => {
+        const keywordLower = keyword.toLowerCase();
         const normalizedKeyword = this.normalizeText(keyword);
         const normalizedItem = this.normalizeText(cleanItem);
 
-        // Recherche plus stricte pour éviter les faux positifs
         // Vérifier que le mot-clé correspond bien au contexte
-        if (this.isSkillRelevantInListContext(keyword, cleanItem, listText)) {
-          if (normalizedItem.includes(normalizedKeyword) || normalizedKeyword.includes(normalizedItem)) {
+        if (this.isSkillRelevantInListContext(keyword, cleanItem, listText, globalContext)) {
+          // Correspondance exacte ou partielle
+          let isMatch = false;
+
+          // 1. Correspondance exacte
+          if (normalizedItem === normalizedKeyword) {
+            isMatch = true;
+          }
+          // 2. L'item contient le keyword
+          else if (normalizedItem.includes(normalizedKeyword)) {
+            isMatch = true;
+          }
+          // 3. Le keyword contient l'item (pour les abréviations)
+          else if (normalizedKeyword.includes(normalizedItem) && normalizedItem.length >= 3) {
+            isMatch = true;
+          }
+          // 4. Correspondance spéciale pour Power BI (gestion des espaces)
+          else if (keywordLower.includes('power') && keywordLower.includes('bi') &&
+                   cleanItemLower.includes('power') && cleanItemLower.includes('bi')) {
+            isMatch = true;
+          }
+
+          if (isMatch) {
             const alreadyFound = foundSkills.find(skill => skill.slug === skillInfo.slug);
             if (!alreadyFound) {
-              console.log(`✅ Compétence trouvée dans liste: ${skillInfo.display_name} (${keyword})`);
+              console.log(`✅ Compétence trouvée dans liste: ${skillInfo.display_name} (${keyword}) depuis "${cleanItem}"`);
               foundSkills.push({
                 ...skillInfo,
                 keyword,
@@ -345,57 +454,56 @@ class SkillsParsingService {
    * @param {string} keyword - Mot-clé de la compétence
    * @param {string} listItem - Élément de la liste
    * @param {string} fullListText - Texte complet de la liste
+   * @param {string} globalContext - Contexte global du texte pour validation
    * @returns {boolean} True si la compétence est pertinente
    */
-  isSkillRelevantInListContext(keyword, listItem, fullListText) {
+  isSkillRelevantInListContext(keyword, listItem, fullListText, globalContext = '') {
     const lowerKeyword = keyword.toLowerCase();
     const lowerItem = listItem.toLowerCase();
     const lowerFullText = fullListText.toLowerCase();
 
-    // Éviter les faux positifs pour les langages de programmation dans des contextes non-dev
-    const programmingLanguages = ['javascript', 'typescript', 'c#', 'c++', 'java', 'python', 'php'];
+    // Validation spéciale pour les langages de programmation
+    const programmingLanguages = ['javascript', 'typescript', 'c#', 'c++', 'java', 'python', 'php', 'go', 'rust'];
     if (programmingLanguages.includes(lowerKeyword)) {
-      // Contextes où les langages de programmation SONT pertinents (priorité)
-      const devContexts = [
-        'développement', 'développeur', 'developer', 'programmeur', 'programming',
-        'frontend', 'backend', 'fullstack', 'web', 'mobile', 'application',
-        'framework', 'library', 'api', 'microservice', 'architecture',
-        'technologies', 'stack technique', 'environnement technique',
-        'compétences techniques', 'outils de développement', 'ide',
-        'spring', 'angular', 'react', 'vue', 'node', 'express',
-        'database', 'sql', 'nosql', 'orm', 'mvc', 'rest', 'graphql',
-        'version', 'git', 'ci/cd', 'devops', 'docker', 'kubernetes',
-        'test', 'junit', 'selenium', 'cypress', 'jest', 'logiciel',
-        'code', 'programmation', 'tech', 'lead tech', 'front-end', 'back-end'
+      // Utiliser le contexte global pour la validation des langages de programmation
+      const contextToCheck = globalContext || (lowerFullText + ' ' + lowerItem);
+      return this.isValidProgrammingLanguageInContext(lowerKeyword, contextToCheck);
+    }
+
+    // Compétences BI/Data - toujours pertinentes dans les contextes appropriés
+    const biSkills = ['power bi', 'tableau', 'qlik', 'excel', 'msbi', 'ssis', 'ssas', 'ssrs', 'data visualization'];
+    if (biSkills.some(skill => lowerKeyword.includes(skill.replace(/\s+/g, '')) || skill.includes(lowerKeyword))) {
+      // Contextes BI pertinents
+      const biContexts = [
+        'business intelligence', 'bi', 'pilotage', 'performance', 'consultant',
+        'tableaux de bord', 'reporting', 'data', 'visualization', 'analyse',
+        'dashboard', 'kpi', 'indicateur', 'métier', 'décision'
       ];
 
-      // Si le contexte contient des mots de développement, accepter
-      const hasDevContext = devContexts.some(context =>
+      const hasBiContext = biContexts.some(context =>
         lowerFullText.includes(context) || lowerItem.includes(context)
       );
 
-      if (hasDevContext) {
+      if (hasBiContext) {
+        console.log(`✅ Compétence BI ${keyword} acceptée - contexte BI détecté`);
         return true;
       }
+    }
 
-      // Contextes clairement non-développement
-      const nonDevContexts = [
-        'ressources humaines', 'recrutement', 'formation générale',
-        'commercial', 'vente', 'marketing', 'communication',
-        'comptabilité', 'finance', 'gestion administrative',
-        'logistique', 'supply chain', 'production industrielle',
-        'juridique', 'legal', 'conformité', 'audit financier',
-        'sécurité physique', 'gardiennage', 'nettoyage'
+    // Compétences système/réseau - pertinentes dans les contextes IT
+    const systemSkills = ['windows', 'linux', 'active directory', 'dns', 'dhcp', 'vpn', 'firewall', 'vmware', 'hyper-v'];
+    if (systemSkills.some(skill => lowerKeyword.includes(skill.replace(/\s+/g, '')) || skill.includes(lowerKeyword))) {
+      const systemContexts = [
+        'système', 'réseau', 'infrastructure', 'serveur', 'administrateur',
+        'support', 'technique', 'informatique', 'it', 'sécurité'
       ];
 
-      // Si le contexte contient des mots clairement non-développement, ignorer
-      const hasNonDevContext = nonDevContexts.some(context =>
+      const hasSystemContext = systemContexts.some(context =>
         lowerFullText.includes(context) || lowerItem.includes(context)
       );
 
-      if (hasNonDevContext) {
-        console.log(`⚠️ Compétence ${keyword} ignorée - contexte non-développement: ${listItem.substring(0, 80)}`);
-        return false;
+      if (hasSystemContext) {
+        return true;
       }
     }
 
@@ -467,11 +575,19 @@ class SkillsParsingService {
    * @returns {boolean} True si la compétence est valide dans ce contexte
    */
   isValidSkillInContext(keyword, normalizedText) {
+    const keywordLower = keyword.toLowerCase();
+
+    // Validation spéciale pour les langages de programmation
+    const programmingLanguages = ['c#', 'c++', 'java', 'javascript', 'typescript', 'python', 'php', 'go', 'rust'];
+    if (programmingLanguages.includes(keywordLower)) {
+      return this.isValidProgrammingLanguageInContext(keywordLower, normalizedText);
+    }
+
     // Éviter les faux positifs pour certains mots courts
     const shortWords = ['c', 'go', 'r'];
-    if (shortWords.includes(keyword.toLowerCase())) {
+    if (shortWords.includes(keywordLower)) {
       // Pour les mots courts, vérifier qu'ils sont entourés d'espaces ou de ponctuation
-      const regex = new RegExp(`\\b${keyword.toLowerCase()}\\b`, 'i');
+      const regex = new RegExp(`\\b${keywordLower}\\b`, 'i');
       if (!regex.test(normalizedText)) {
         return false;
       }
@@ -482,7 +598,7 @@ class SkillsParsingService {
         'language', 'programming', 'development', 'coding'
       ];
 
-      const keywordIndex = normalizedText.indexOf(keyword.toLowerCase());
+      const keywordIndex = normalizedText.indexOf(keywordLower);
       const contextStart = Math.max(0, keywordIndex - 50);
       const contextEnd = Math.min(normalizedText.length, keywordIndex + keyword.length + 50);
       const context = normalizedText.substring(contextStart, contextEnd);
@@ -493,22 +609,123 @@ class SkillsParsingService {
       }
     }
 
-    // Éviter les faux positifs pour C# et C++ dans des contextes non techniques
-    if (['c#', 'c++'].includes(keyword.toLowerCase())) {
-      const technicalIndicators = [
-        'développement', 'programmation', 'langage', 'framework', 'application',
-        'development', 'programming', 'language', 'coding', 'software'
-      ];
+    return true;
+  }
 
-      const hasTechnicalIndicator = technicalIndicators.some(indicator =>
-        normalizedText.includes(indicator)
-      );
+  /**
+   * Validation spécifique pour les langages de programmation
+   * @param {string} keywordLower - Mot-clé en minuscules
+   * @param {string} normalizedText - Texte normalisé
+   * @returns {boolean} True si le langage est valide dans ce contexte
+   */
+  isValidProgrammingLanguageInContext(keywordLower, normalizedText) {
+    // Contextes où les langages de programmation SONT pertinents
+    const devContexts = [
+      // Mots-clés de développement
+      'développement', 'développeur', 'developer', 'programmeur', 'programming',
+      'frontend', 'backend', 'fullstack', 'full-stack', 'web', 'mobile', 'application',
+      'logiciel', 'software', 'code', 'coding', 'programmation',
 
-      if (!hasTechnicalIndicator) {
-        return false;
-      }
+      // Technologies et frameworks
+      'framework', 'library', 'api', 'microservice', 'architecture',
+      'technologies', 'stack technique', 'environnement technique',
+      'compétences techniques', 'outils de développement', 'ide',
+      'spring', 'angular', 'react', 'vue', 'node', 'express',
+      'database', 'sql', 'nosql', 'orm', 'mvc', 'rest', 'graphql',
+
+      // DevOps et outils
+      'version', 'git', 'ci/cd', 'devops', 'docker', 'kubernetes',
+      'test', 'junit', 'selenium', 'cypress', 'jest',
+      'tech', 'lead tech', 'front-end', 'back-end',
+
+      // Termes spécifiques
+      'msbi', 'ssis', 'ssas', 'ssrs', 'azure', 'mongodb'
+    ];
+
+    // Contextes clairement NON-développement (plus restrictifs)
+    const nonDevContexts = [
+      // Métiers non-techniques
+      'ressources humaines', 'recrutement', 'formation générale',
+      'commercial', 'vente', 'marketing', 'communication',
+      'comptabilité', 'finance', 'gestion administrative',
+      'logistique', 'supply chain', 'production industrielle',
+      'juridique', 'legal', 'conformité', 'audit financier',
+      'sécurité physique', 'gardiennage', 'nettoyage',
+
+      // Contextes BI/Infrastructure sans développement
+      'business intelligence', 'pilotage performance', 'consultant bi',
+      'tableaux de bord', 'reporting', 'data visualization',
+      'systemes reseaux', 'infrastructure', 'administrateur systemes',
+      'support technique', 'maintenance', 'helpdesk',
+      'consultant business intelligence', 'pilotage', 'performance',
+
+      // Support utilisateur et assistance
+      'assistant support', 'support projet', 'assistance technique',
+      'formation continue', 'gestion incidents', 'hotline',
+      'support utilisateur', 'assistance utilisateur', 'help desk',
+      'technicien informatique', 'technicien support', 'support client',
+      'maintenance informatique', 'installation materiel', 'configuration materiel',
+
+      // Gestion de projet non-technique
+      'chef de projet', 'chef de projets', 'project manager',
+      'gestion projet', 'coordination projet', 'pilotage projet',
+      'gouvernance donnees', 'master data', 'nettoyage donnees',
+      'processus facturation', 'dématérialisation', 'conformité',
+
+      // Administration système (non-développement)
+      'administrateur systeme', 'admin systeme', 'administration systeme',
+      'gestion serveur', 'maintenance serveur', 'installation serveur',
+      'configuration reseau', 'maintenance reseau', 'support reseau'
+    ];
+
+    // Vérifier si le contexte contient des mots de développement
+    const hasDevContext = devContexts.some(context =>
+      normalizedText.includes(context.toLowerCase())
+    );
+
+    // Vérifier si le contexte contient des mots clairement non-développement
+    const hasNonDevContext = nonDevContexts.some(context =>
+      normalizedText.includes(context.toLowerCase())
+    );
+
+    // Si contexte non-développement détecté, rejeter immédiatement (priorité)
+    if (hasNonDevContext) {
+      console.log(`❌ Langage ${keywordLower} rejeté - contexte non-développement: ${normalizedText.substring(0, 100)}...`);
+      return false;
     }
 
+    // Si contexte de développement détecté ET pas de contexte non-développement, accepter
+    if (hasDevContext) {
+      console.log(`✅ Langage ${keywordLower} accepté - contexte développement détecté`);
+      return true;
+    }
+
+    // Cas ambigus : vérifier la présence explicite du langage dans un contexte technique
+    const keywordIndex = normalizedText.indexOf(keywordLower);
+    if (keywordIndex === -1) return false;
+
+    // Analyser le contexte autour du mot-clé (200 caractères avant et après)
+    const contextStart = Math.max(0, keywordIndex - 200);
+    const contextEnd = Math.min(normalizedText.length, keywordIndex + keywordLower.length + 200);
+    const localContext = normalizedText.substring(contextStart, contextEnd);
+
+    // Indicateurs techniques dans le contexte local
+    const localTechnicalIndicators = [
+      'langage', 'programmation', 'développement', 'framework', 'application',
+      'language', 'programming', 'development', 'coding', 'software',
+      'script', 'algorithme', 'base de données', 'database'
+    ];
+
+    const hasLocalTechnicalContext = localTechnicalIndicators.some(indicator =>
+      localContext.includes(indicator)
+    );
+
+    if (!hasLocalTechnicalContext) {
+      console.log(`❌ Langage ${keywordLower} rejeté - pas de contexte technique local`);
+      return false;
+    }
+
+    console.log(`✅ Langage ${keywordLower} accepté - contexte technique local détecté`);
     return true;
   }
 
@@ -631,8 +848,36 @@ class SkillsParsingService {
    */
   async matchSkillsToDatabase(parsedSkills, supabase) {
     const matchedSkills = [];
-    
+
     for (const parsedSkill of parsedSkills) {
+      let existingSkill = await this.findExistingSkill(parsedSkill, supabase);
+
+      if (!existingSkill) {
+        // 🆕 CRÉATION AUTOMATIQUE si compétence non trouvée
+        existingSkill = await this.createSkill(parsedSkill, supabase);
+      }
+
+      if (existingSkill) {
+        matchedSkills.push({
+          skill_id: existingSkill.id,
+          is_required: parsedSkill.is_required,
+          weight: parsedSkill.weight,
+          skills: existingSkill
+        });
+      }
+    }
+
+    return matchedSkills;
+  }
+
+  /**
+   * Recherche une compétence existante en base de données
+   * @param {Object} parsedSkill - Compétence parsée
+   * @param {Object} supabase - Client Supabase
+   * @returns {Object|null} Compétence trouvée ou null
+   */
+  async findExistingSkill(parsedSkill, supabase) {
+    try {
       // Chercher la compétence dans la base de données par slug d'abord
       let { data: existingSkill } = await supabase
         .from('skills')
@@ -649,20 +894,41 @@ class SkillsParsingService {
           .single();
         existingSkill = skillByName;
       }
-      
-      if (existingSkill) {
-        matchedSkills.push({
-          skill_id: existingSkill.id,
-          is_required: parsedSkill.is_required,
-          weight: parsedSkill.weight,
-          skills: existingSkill
-        });
-      } else {
-        console.log(`⚠️ Compétence non trouvée dans la DB: ${parsedSkill.display_name} (${parsedSkill.slug})`);
-      }
+
+      return existingSkill || null;
+    } catch (error) {
+      console.error('Erreur findExistingSkill:', error);
+      return null;
     }
-    
-    return matchedSkills;
+  }
+
+  /**
+   * Crée automatiquement une nouvelle compétence en base de données
+   * @param {Object} parsedSkill - Compétence parsée
+   * @param {Object} supabase - Client Supabase
+   * @returns {Object|null} Compétence créée ou null
+   */
+  async createSkill(parsedSkill, supabase) {
+    try {
+      const { data: newSkill, error } = await supabase
+        .from('skills')
+        .insert({
+          slug: parsedSkill.slug,
+          display_name: parsedSkill.display_name,
+          category: parsedSkill.category || 'Technique'
+        })
+        .select('id, slug, display_name, category')
+        .single();
+
+      if (error) throw error;
+
+      console.log(`🆕 Compétence créée: ${parsedSkill.display_name}`);
+      return newSkill;
+
+    } catch (error) {
+      console.error('❌ Erreur création compétence:', error);
+      return null;
+    }
   }
 
   /**

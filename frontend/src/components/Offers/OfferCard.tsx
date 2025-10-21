@@ -5,7 +5,8 @@ import {
   CurrencyEuroIcon,
   CalendarIcon,
   BookmarkIcon,
-  EyeIcon
+  EyeIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 import { JobOffer } from '../../types';
@@ -17,6 +18,7 @@ interface OfferCardProps {
   onSelect: (offer: JobOffer) => void;
   onSave: (offerId: string) => void;
   onApply: (offerId: string) => void;
+  onGenerateLM?: (offerId: string) => void;
 }
 
 const OfferCard: React.FC<OfferCardProps> = ({
@@ -25,7 +27,8 @@ const OfferCard: React.FC<OfferCardProps> = ({
   isSaved = false,
   onSelect,
   onSave,
-  onApply
+  onApply,
+  onGenerateLM
 }) => {
   const formatSalary = (min?: number, max?: number, currency = '€') => {
     if (!min && !max) return 'Salaire non spécifié';
@@ -191,6 +194,21 @@ const OfferCard: React.FC<OfferCardProps> = ({
                 <BookmarkIcon className="h-4 w-4" />
               )}
             </button>
+
+            {onGenerateLM && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onGenerateLM(offer.id);
+                }}
+                className="btn-outline btn-sm flex-1 sm:flex-none text-green-600 border-green-600 hover:bg-green-50"
+                title="Générer une lettre de motivation pour cette offre"
+              >
+                <DocumentTextIcon className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Générer LM</span>
+                <span className="sm:hidden">LM</span>
+              </button>
+            )}
 
             <button
               onClick={() => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   MapPinIcon,
   BriefcaseIcon,
@@ -10,11 +10,10 @@ import {
   ShareIcon,
   ExclamationTriangleIcon,
   XMarkIcon,
-  ChartBarIcon
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 import { JobOffer } from '../../types';
-import MatchingDetailsModal from './MatchingDetailsModal';
 
 interface OfferDetailsProps {
   offer: JobOffer;
@@ -22,6 +21,7 @@ interface OfferDetailsProps {
   onSave: (offerId: string) => void;
   onApply: (offerId: string) => void;
   onClose?: () => void;
+  onGenerateLM?: (offerId: string) => void;
 }
 
 const OfferDetails: React.FC<OfferDetailsProps> = ({
@@ -29,9 +29,9 @@ const OfferDetails: React.FC<OfferDetailsProps> = ({
   isSaved = false,
   onSave,
   onApply,
-  onClose
+  onClose,
+  onGenerateLM
 }) => {
-  const [showMatchingModal, setShowMatchingModal] = useState(false);
 
   const formatSalary = (min?: number, max?: number, currency = '€') => {
     if (!min && !max) return 'Salaire non spécifié';
@@ -120,15 +120,17 @@ const OfferDetails: React.FC<OfferDetailsProps> = ({
           >
             {offer.source === 'EXTERNAL' && offer.source_url ? 'Postuler sur France Travail' : 'Postuler maintenant'}
           </button>
-          <button
-            onClick={() => setShowMatchingModal(true)}
-            className="btn-outline flex-1 sm:flex-none flex items-center justify-center"
-            title="Voir l'analyse détaillée du matching"
-          >
-            <ChartBarIcon className="h-5 w-5 mr-2" />
-            <span className="hidden sm:inline">Voir le matching</span>
-            <span className="sm:hidden">Matching</span>
-          </button>
+          {onGenerateLM && (
+            <button
+              onClick={() => onGenerateLM(offer.id)}
+              className="btn-outline flex-1 sm:flex-none text-green-600 border-green-600 hover:bg-green-50"
+              title="Générer une lettre de motivation pour cette offre"
+            >
+              <DocumentTextIcon className="h-5 w-5 mr-2" />
+              <span className="hidden sm:inline">Générer ma LM</span>
+              <span className="sm:hidden">LM</span>
+            </button>
+          )}
           <button
             onClick={() => onSave(offer.id)}
             className={`btn-outline ${isSaved ? 'text-yellow-600 border-yellow-600' : ''}`}
@@ -206,42 +208,76 @@ const OfferDetails: React.FC<OfferDetailsProps> = ({
         </div>
 
         {/* Compétences requises */}
-        {offer.job_offer_skills && offer.job_offer_skills.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Compétences recherchées
-            </h2>
+        {(() => {
+          // Logic to determine if skills should be displayed
+          const hasSkills = offer.job_offer_skills && offer.job_offer_skills.length > 0;
 
-            {/* Compétences requises */}
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
-                Compétences requises
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {offer.job_offer_skills
-                  .filter(skill => skill.is_required)
-                  .map((skill, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-red-100 text-red-800 font-medium"
-                    >
-                      {skill.skills.display_name}
-                      <ExclamationTriangleIcon className="h-4 w-4 ml-1" />
-                    </span>
-                  ))}
-              </div>
-            </div>
+          if (!hasSkills) return null;
 
-            {/* Compétences optionnelles */}
-            {offer.job_offer_skills.some(skill => !skill.is_required) && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">
-                  Compétences appréciées
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {offer.job_offer_skills
-                    .filter(skill => !skill.is_required)
-                    .map((skill, index) => (
+          // Check if skills seem to be meaningful (not just auto-generated defaults)
+          const requiredSkills = offer.job_offer_skills.filter(skill => skill.is_required);
+          const optionalSkills = offer.job_offer_skills.filter(skill => !skill.is_required);
+
+          // Common default/generic skills that are often auto-added
+          const commonDefaultSkills = [
+            'git', 'agile', 'english', 'communication', 'teamwork', 'problem-solving',
+            'microsoft-office', 'word', 'excel', 'powerpoint', 'outlook'
+          ];
+
+          // Check if most skills are generic defaults
+          const totalSkills = offer.job_offer_skills.length;
+          const defaultSkillsCount = offer.job_offer_skills.filter(skill =>
+            commonDefaultSkills.includes(skill.skills.slug?.toLowerCase() || '')
+          ).length;
+
+          // Hide skills section if:
+          // 1. More than 70% of skills are common defaults, OR
+          // 2. Offer is external with very few skills (likely auto-generated), OR
+          // 3. Only has generic office skills
+          const isLikelyAutoGenerated = (
+            (defaultSkillsCount / totalSkills > 0.7) ||
+            (offer.source === 'EXTERNAL' && totalSkills <= 3) ||
+            (totalSkills <= 2 && defaultSkillsCount === totalSkills)
+          );
+
+          if (isLikelyAutoGenerated) {
+            return null;
+          }
+
+          return (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Compétences recherchées
+              </h2>
+
+              {/* Compétences requises */}
+              {requiredSkills.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                    Compétences requises
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {requiredSkills.map((skill, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-red-100 text-red-800 font-medium"
+                      >
+                        {skill.skills.display_name}
+                        <ExclamationTriangleIcon className="h-4 w-4 ml-1" />
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Compétences optionnelles */}
+              {optionalSkills.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                    Compétences appréciées
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {optionalSkills.map((skill, index) => (
                       <span
                         key={index}
                         className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-800"
@@ -249,11 +285,12 @@ const OfferDetails: React.FC<OfferDetailsProps> = ({
                         {skill.skills.display_name}
                       </span>
                     ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          );
+        })()}
 
         {/* Informations sur l'entreprise */}
         <div className="mb-8">
@@ -295,21 +332,7 @@ const OfferDetails: React.FC<OfferDetailsProps> = ({
         </div>
       </div>
 
-      {/* Modal de matching détaillé */}
-      {showMatchingModal && (
-        <MatchingDetailsModal
-          offer={offer}
-          isOpen={showMatchingModal}
-          onClose={() => setShowMatchingModal(false)}
-          onApply={onApply}
-          onSave={onSave}
-          isSaved={isSaved}
-          onReport={(offerId, reason) => {
-            console.log(`Signalement pour l'offre ${offerId}: ${reason}`);
-            // TODO: Implémenter l'API de signalement
-          }}
-        />
-      )}
+
     </div>
   );
 };

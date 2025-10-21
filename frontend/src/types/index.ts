@@ -303,6 +303,7 @@ export interface OfferSearchFilters {
   skills?: string[];
   company_sector?: string;
   remote_work?: boolean;
+  source?: 'INTERNAL' | 'EXTERNAL';
   page?: number;
   limit?: number;
   sort?: 'relevance' | 'date_desc' | 'date_asc' | 'salary_desc' | 'salary_asc' | 'score_desc';

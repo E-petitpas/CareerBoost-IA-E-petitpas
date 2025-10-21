@@ -340,8 +340,103 @@ router.get('/companies/:companyId/applications', requireCompanyAccess, asyncHand
     return res.status(500).json({ error: 'Erreur lors de la récupération des candidatures' });
   }
 
+  // Calculer le score de matching pour chaque candidature
+  const applicationsWithScores = await Promise.all(applications.map(async (application) => {
+    let score = 0;
+    let explanation = "Score non calculé";
+
+    try {
+      // Récupérer les données complètes du candidat
+      const { data: candidateProfile, error: profileError } = await supabase
+        .from('candidate_profiles')
+        .select(`
+          *,
+          users (
+            id,
+            name,
+            email,
+            city,
+            latitude,
+            longitude
+          ),
+          candidate_skills (
+            skill_name,
+            skill_level,
+            skill_category
+          ),
+          experiences (
+            company,
+            position,
+            start_date,
+            end_date,
+            description
+          )
+        `)
+        .eq('user_id', application.users.id)
+        .single();
+
+      // Récupérer les données complètes de l'offre
+      const { data: fullOffer, error: offerError } = await supabase
+        .from('job_offers')
+        .select(`
+          *,
+          companies (
+            id,
+            name,
+            city,
+            latitude,
+            longitude
+          ),
+          job_offer_skills (
+            is_required,
+            skills (
+              id,
+              slug,
+              display_name
+            )
+          )
+        `)
+        .eq('id', application.offer_id)
+        .single();
+
+      console.log(`🔍 Calcul matching pour candidature ${application.id} - Candidat: ${application.users?.name}, Offre: ${application.offer_id}`);
+
+      if (profileError) {
+        console.error(`❌ Erreur récupération profil candidat ${application.users.id}:`, profileError);
+        explanation = "Profil candidat introuvable";
+      } else if (!candidateProfile) {
+        console.warn(`⚠️ Aucun profil candidat trouvé pour user_id: ${application.users.id}`);
+        explanation = "Profil candidat non configuré";
+      } else if (offerError) {
+        console.error(`❌ Erreur récupération offre ${application.offer_id}:`, offerError);
+        explanation = "Offre d'emploi introuvable";
+      } else if (!fullOffer) {
+        console.warn(`⚠️ Aucune offre trouvée pour offer_id: ${application.offer_id}`);
+        explanation = "Offre d'emploi non trouvée";
+      } else {
+        console.log(`✅ Données récupérées - Candidat: ${candidateProfile.users?.name}, Skills: ${candidateProfile.candidate_skills?.length || 0}, Offre: ${fullOffer.title}, Skills requises: ${fullOffer.job_offer_skills?.length || 0}`);
+
+        const { calculateMatchingScore } = require('../services/matchingService');
+        const matchResult = await calculateMatchingScore(candidateProfile, fullOffer);
+        score = matchResult.score;
+        explanation = matchResult.explanation;
+
+        console.log(`🎯 Score calculé: ${score}% - ${explanation}`);
+      }
+    } catch (error) {
+      console.error('❌ Erreur calcul matching pour candidature:', application.id, error);
+      explanation = "Erreur lors du calcul du score de matching";
+    }
+
+    return {
+      ...application,
+      score,
+      explanation
+    };
+  }));
+
   res.json({
-    data: applications,
+    data: applicationsWithScores,
     pagination: {
       page: parseInt(page),
       limit: parseInt(limit),

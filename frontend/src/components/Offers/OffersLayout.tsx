@@ -14,6 +14,7 @@ interface OffersLayoutProps {
   onOfferSave: (offerId: string) => void;
   onOfferApply: (offerId: string) => void;
   onCloseDetails?: () => void;
+  onGenerateLM?: (offerId: string) => void;
 }
 
 const OffersLayout: React.FC<OffersLayoutProps> = ({
@@ -25,7 +26,8 @@ const OffersLayout: React.FC<OffersLayoutProps> = ({
   onOfferSelect,
   onOfferSave,
   onOfferApply,
-  onCloseDetails
+  onCloseDetails,
+  onGenerateLM
 }) => {
   const renderOffersList = () => {
     if (loading) {
@@ -71,6 +73,7 @@ const OffersLayout: React.FC<OffersLayoutProps> = ({
             onSelect={onOfferSelect}
             onSave={onOfferSave}
             onApply={onOfferApply}
+            onGenerateLM={onGenerateLM}
           />
         ))}
       </div>
@@ -108,6 +111,7 @@ const OffersLayout: React.FC<OffersLayoutProps> = ({
                   onSave={onOfferSave}
                   onApply={onOfferApply}
                   onClose={onCloseDetails}
+                  onGenerateLM={onGenerateLM}
                 />
               </div>
             </div>

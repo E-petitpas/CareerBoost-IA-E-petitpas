@@ -228,6 +228,93 @@ La lettre doit être convaincante et montrer pourquoi ce candidat est le bon cho
       throw new Error('Erreur lors de la génération de texte avec l\'IA');
     }
   }
+
+  /**
+   * Extrait les compétences et expériences depuis le contenu d'un CV
+   */
+  async extractSkillsAndExperiencesFromCV(cvContent) {
+    try {
+      const prompt = `Analyse ce CV et extrait les compétences et expériences professionnelles.
+
+CV Content:
+${cvContent}
+
+Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte:
+{
+  "skills": [
+    {
+      "name": "nom de la compétence",
+      "category": "technique|soft|langue|autre",
+      "level": 1-5
+    }
+  ],
+  "experiences": [
+    {
+      "company": "nom de l'entreprise",
+      "position": "poste occupé",
+      "start_date": "YYYY-MM-DD ou YYYY-MM ou YYYY",
+      "end_date": "YYYY-MM-DD ou YYYY-MM ou YYYY ou null si en cours",
+      "description": "description des missions et réalisations",
+      "location": "ville, pays (si mentionné)"
+    }
+  ]
+}
+
+Instructions:
+- Extrait UNIQUEMENT les compétences explicitement mentionnées
+- Pour les expériences, inclus tous les postes professionnels mentionnés
+- Utilise des dates au format ISO quand possible
+- Si une date est incomplète, utilise ce qui est disponible
+- Pour les compétences techniques, privilégie la catégorie "technique"
+- Pour les langues, utilise la catégorie "langue"
+- Estime le niveau de compétence de 1 (débutant) à 5 (expert) selon le contexte`;
+
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "Tu es un expert en analyse de CV qui extrait des informations structurées. Tu retournes UNIQUEMENT du JSON valide."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.3
+      });
+
+      const aiResponse = response.choices[0].message.content;
+
+      // Extraire le JSON de la réponse
+      let extractedData = {};
+      try {
+        // Chercher le JSON dans la réponse
+        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          extractedData = JSON.parse(jsonMatch[0]);
+        } else {
+          console.log('❌ Format JSON non trouvé dans la réponse IA');
+          return { skills: [], experiences: [] };
+        }
+      } catch (parseError) {
+        console.log('❌ Erreur parsing JSON IA:', parseError.message);
+        return { skills: [], experiences: [] };
+      }
+
+      // Valider la structure
+      const skills = Array.isArray(extractedData.skills) ? extractedData.skills : [];
+      const experiences = Array.isArray(extractedData.experiences) ? extractedData.experiences : [];
+
+      console.log(`✅ Extraction CV: ${skills.length} compétences, ${experiences.length} expériences`);
+
+      return { skills, experiences };
+    } catch (error) {
+      console.error('Erreur extraction CV IA:', error);
+      return { skills: [], experiences: [] };
+    }
+  }
 }
 
 // Instance singleton

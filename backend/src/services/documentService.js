@@ -77,18 +77,24 @@ class DocumentService {
     try {
       const { user, profile, offer, customMessage } = data;
 
+      console.log('DocumentService.generateCoverLetter - Début génération');
+      console.log('User:', user?.name, 'Offer:', offer?.title);
+
       let aiContent = null;
       if (useAI) {
         try {
           // Générer le contenu personnalisé avec l'IA
+          console.log('Appel à l\'IA pour générer le contenu...');
           aiContent = await aiService.generateCoverLetterContent(data);
           console.log('Contenu IA généré pour la LM');
         } catch (error) {
           console.warn('Erreur génération IA, utilisation du template standard:', error.message);
+          console.error('Détails erreur IA:', error);
         }
       }
 
       // Générer le contenu HTML de la LM
+      console.log('Génération du HTML...');
       const lmContent = this.generateCoverLetterHTML({
         user,
         profile,
@@ -98,10 +104,12 @@ class DocumentService {
       });
 
       // Générer un nom de fichier unique
-      const userName = (user.name || 'lm').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
-      const offerTitle = (offer.title || 'offer').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+      const userName = (user?.name || 'lm').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+      const offerTitle = (offer?.title || 'offer').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
       const filename = `lm_${userName}_${offerTitle}_${Date.now()}.html`;
       const filepath = path.join(this.uploadsDir, 'lm', filename);
+
+      console.log('Sauvegarde du fichier:', filepath);
 
       // Sauvegarder le fichier
       await fs.writeFile(filepath, lmContent, 'utf8');
@@ -110,12 +118,13 @@ class DocumentService {
       const url = `/uploads/lm/${filename}`;
       const relativeFilepath = `uploads/lm/${filename}`;
 
-      console.log('LM générée:', url);
+      console.log('LM générée avec succès:', url);
       return { url, filepath: relativeFilepath };
 
     } catch (error) {
       console.error('Erreur génération LM:', error);
-      throw new Error('Erreur lors de la génération de la lettre de motivation');
+      console.error('Stack trace:', error.stack);
+      throw new Error(`Erreur lors de la génération de la lettre de motivation: ${error.message}`);
     }
   }
 
@@ -216,14 +225,24 @@ class DocumentService {
    */
   generateCoverLetterHTML({ user, profile, offer, customMessage, aiContent }) {
     const today = new Date().toLocaleDateString('fr-FR');
-    
+
+    // Gestion sécurisée des données
+    const userName = user?.name || 'Candidat';
+    const userEmail = user?.email || '';
+    const userPhone = user?.phone || '';
+    const userCity = user?.city || '';
+    const companyName = offer?.companies?.name || offer?.company_name || 'Entreprise';
+    const offerTitle = offer?.title || 'Poste';
+    const profileSummary = profile?.summary || '';
+    const experienceYears = profile?.experience_years || 0;
+
     return `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lettre de motivation - ${user.name}</title>
+    <title>Lettre de motivation - ${userName}</title>
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 40px; color: #333; max-width: 800px; }
         .header { margin-bottom: 40px; }
@@ -238,23 +257,23 @@ class DocumentService {
 </head>
 <body>
     <div class="sender">
-        <strong>${user.name}</strong><br>
-        ${user.email}<br>
-        ${user.phone || ''}<br>
-        ${user.city || ''}
+        <strong>${userName}</strong><br>
+        ${userEmail}<br>
+        ${userPhone ? userPhone + '<br>' : ''}
+        ${userCity}
     </div>
 
     <div class="recipient">
-        <strong>${offer.companies?.name || 'Entreprise'}</strong><br>
+        <strong>${companyName}</strong><br>
         Service Ressources Humaines
     </div>
 
     <div class="date">
-        ${user.city || 'Paris'}, le ${today}
+        ${userCity || 'Paris'}, le ${today}
     </div>
 
     <div class="subject">
-        <strong>Objet :</strong> Candidature pour le poste de ${offer.title}
+        <strong>Objet :</strong> Candidature pour le poste de ${offerTitle}
     </div>
 
     <div class="content">
@@ -265,12 +284,12 @@ class DocumentService {
         ` : `
         <p>Madame, Monsieur,</p>
 
-        <p>Je me permets de vous adresser ma candidature pour le poste de <strong>${offer.title}</strong> au sein de votre entreprise ${offer.companies?.name || 'votre entreprise'}.</p>
+        <p>Je me permets de vous adresser ma candidature pour le poste de <strong>${offerTitle}</strong> au sein de votre entreprise ${companyName}.</p>
 
-        ${profile.summary ? `
-        <p>${profile.summary}</p>
+        ${profileSummary ? `
+        <p>${profileSummary}</p>
         ` : `
-        <p>Fort(e) de ${profile.experience_years || 0} année(s) d'expérience, je suis convaincu(e) que mon profil correspond aux exigences de ce poste.</p>
+        <p>Fort(e) de ${experienceYears} année(s) d'expérience, je suis convaincu(e) que mon profil correspond aux exigences de ce poste.</p>
         `}
 
         ${customMessage ? `
@@ -286,7 +305,7 @@ class DocumentService {
     </div>
 
     <div class="signature">
-        <p>${user.name}</p>
+        <p>${userName}</p>
     </div>
 
     <div style="text-align: center; color: #6b7280; font-size: 0.9em; margin-top: 40px;">

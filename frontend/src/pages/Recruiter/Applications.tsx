@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { DocumentTextIcon, EyeIcon, StarIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import {
+  DocumentTextIcon,
+  EyeIcon,
+  StarIcon,
+  DocumentArrowDownIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  UserGroupIcon,
+  ClockIcon
+} from '@heroicons/react/24/outline';
 import apiService from '../../services/api';
-import { Application } from '../../types';
+import { Application, ApplicationStatus } from '../../types';
 
 const RecruiterApplications: React.FC = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const [showCVModal, setShowCVModal] = useState(false);
+  const [selectedCVUrl, setSelectedCVUrl] = useState<string>('');
+  const [selectedCandidate, setSelectedCandidate] = useState<string>('');
 
   useEffect(() => {
     loadApplications();
@@ -61,22 +73,46 @@ const RecruiterApplications: React.FC = () => {
     }
   };
 
-  const handleViewCV = (cvUrl: string) => {
+  const handleViewCV = (cvUrl: string, candidateName: string) => {
     if (cvUrl) {
       // Construire l'URL complète
       const fullUrl = cvUrl.startsWith('http') ? cvUrl : `http://localhost:3001${cvUrl}`;
-      window.open(fullUrl, '_blank');
+      setSelectedCVUrl(fullUrl);
+      setSelectedCandidate(candidateName);
+      setShowCVModal(true);
     }
+  };
+
+  const handleUpdateApplicationStatus = async (applicationId: string, newStatus: ApplicationStatus) => {
+    try {
+      await apiService.updateApplicationStatus(applicationId, newStatus);
+      // Recharger les candidatures pour refléter le changement
+      await loadApplications();
+      alert(`✅ Statut mis à jour vers "${getStatusLabel(newStatus)}"`);
+    } catch (err: any) {
+      console.error('Erreur mise à jour statut:', err);
+      alert('❌ ' + (err.response?.data?.error || err.message || 'Erreur lors de la mise à jour du statut'));
+    }
+  };
+
+  const getStatusLabel = (status: ApplicationStatus): string => {
+    const statusLabels = {
+      'ENVOYE': 'Envoyé',
+      'EN_ATTENTE': 'En attente',
+      'ENTRETIEN': 'Entretien',
+      'REFUS': 'Refusé',
+      'EMBAUCHE': 'Embauché'
+    };
+    return statusLabels[status] || status;
   };
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       'ENVOYE': { color: 'bg-blue-100 text-blue-800', label: 'Envoyé' },
-      'VU': { color: 'bg-yellow-100 text-yellow-800', label: 'Vu' },
       'EN_ATTENTE': { color: 'bg-orange-100 text-orange-800', label: 'En attente' },
       'ENTRETIEN': { color: 'bg-purple-100 text-purple-800', label: 'Entretien' },
-      'ACCEPTE': { color: 'bg-green-100 text-green-800', label: 'Accepté' },
-      'REFUSE': { color: 'bg-red-100 text-red-800', label: 'Refusé' }
+      'EMBAUCHE': { color: 'bg-green-100 text-green-800', label: 'Embauché' },
+      'REFUS': { color: 'bg-red-100 text-red-800', label: 'Refusé' }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig['ENVOYE'];
@@ -197,20 +233,77 @@ const RecruiterApplications: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="ml-4 flex space-x-2">
+                      <div className="ml-4 flex flex-wrap gap-2">
                         {(application.users as any)?.candidate_profiles?.cv_url && (
                           <button
-                            onClick={() => handleViewCV((application.users as any).candidate_profiles.cv_url)}
+                            onClick={() => handleViewCV(
+                              (application.users as any).candidate_profiles.cv_url,
+                              application.users?.name || 'Candidat inconnu'
+                            )}
                             className="inline-flex items-center px-3 py-2 border border-blue-300 shadow-sm text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                           >
-                            <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
-                            CV
+                            <EyeIcon className="h-4 w-4 mr-1" />
+                            Voir CV
                           </button>
                         )}
-                        <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                          <EyeIcon className="h-4 w-4 mr-1" />
-                          Voir détails
-                        </button>
+
+                        {/* Actions du pipeline selon le statut */}
+                        {application.status === 'ENVOYE' && (
+                          <>
+                            <button
+                              onClick={() => handleUpdateApplicationStatus(application.id, 'EN_ATTENTE')}
+                              className="inline-flex items-center px-3 py-2 border border-orange-300 shadow-sm text-sm leading-4 font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                            >
+                              <ClockIcon className="h-4 w-4 mr-1" />
+                              En attente
+                            </button>
+                            <button
+                              onClick={() => handleUpdateApplicationStatus(application.id, 'REFUS')}
+                              className="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            >
+                              <XCircleIcon className="h-4 w-4 mr-1" />
+                              Refuser
+                            </button>
+                          </>
+                        )}
+
+                        {application.status === 'EN_ATTENTE' && (
+                          <>
+                            <button
+                              onClick={() => handleUpdateApplicationStatus(application.id, 'ENTRETIEN')}
+                              className="inline-flex items-center px-3 py-2 border border-purple-300 shadow-sm text-sm leading-4 font-medium rounded-md text-purple-700 bg-purple-50 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                            >
+                              <UserGroupIcon className="h-4 w-4 mr-1" />
+                              Entretien
+                            </button>
+                            <button
+                              onClick={() => handleUpdateApplicationStatus(application.id, 'REFUS')}
+                              className="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            >
+                              <XCircleIcon className="h-4 w-4 mr-1" />
+                              Refuser
+                            </button>
+                          </>
+                        )}
+
+                        {application.status === 'ENTRETIEN' && (
+                          <>
+                            <button
+                              onClick={() => handleUpdateApplicationStatus(application.id, 'EMBAUCHE')}
+                              className="inline-flex items-center px-3 py-2 border border-green-300 shadow-sm text-sm leading-4 font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                            >
+                              <CheckCircleIcon className="h-4 w-4 mr-1" />
+                              Recruter
+                            </button>
+                            <button
+                              onClick={() => handleUpdateApplicationStatus(application.id, 'REFUS')}
+                              className="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            >
+                              <XCircleIcon className="h-4 w-4 mr-1" />
+                              Refuser
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -220,6 +313,95 @@ const RecruiterApplications: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal pour afficher le CV */}
+      {showCVModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900">
+                CV de {selectedCandidate}
+              </h3>
+              <button
+                onClick={() => setShowCVModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
+              {selectedCVUrl ? (
+                selectedCVUrl.endsWith('.html') ? (
+                  // CV généré (HTML) - affichage direct dans iframe
+                  <iframe
+                    src={selectedCVUrl}
+                    className="w-full h-full min-h-[600px] border-0"
+                    title={`CV de ${selectedCandidate}`}
+                  />
+                ) : (
+                  // CV uploadé (PDF/DOC) - affichage direct
+                  <div className="relative h-[600px] bg-gray-50 rounded-lg overflow-hidden">
+                    {/* Boutons d'action flottants */}
+                    <div className="absolute top-4 right-4 z-10 flex space-x-2">
+                      <a
+                        href={selectedCVUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 shadow-lg"
+                        title="Ouvrir dans un nouvel onglet"
+                      >
+                        <EyeIcon className="h-4 w-4 mr-1" />
+                        Ouvrir
+                      </a>
+                      <a
+                        href={selectedCVUrl}
+                        download
+                        className="inline-flex items-center px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 shadow-lg"
+                        title="Télécharger le CV"
+                      >
+                        <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
+                        Télécharger
+                      </a>
+                    </div>
+
+                    {/* Affichage direct du PDF */}
+                    <iframe
+                      src={selectedCVUrl}
+                      className="w-full h-full border-0"
+                      title={`CV de ${selectedCandidate}`}
+                    />
+                  </div>
+                )
+              ) : (
+                <div className="flex items-center justify-center h-[600px] bg-gray-50 rounded-lg">
+                  <div className="text-center">
+                    <DocumentTextIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">Aucun CV disponible</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end space-x-3 p-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowCVModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Fermer
+              </button>
+              <a
+                href={selectedCVUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+              >
+                Ouvrir dans un nouvel onglet
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

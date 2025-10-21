@@ -7,7 +7,8 @@ import {
   AcademicCapIcon,
   CogIcon,
   StarIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import apiService from '../../services/api';
 import { CandidateProfile as CandidateProfileType, Experience, CandidateSkill } from '../../types';
@@ -290,10 +291,19 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
   };
 
   const getProficiencyColor = (level?: number) => {
-    if (!level) return 'bg-gray-200';
-    const colors = ['', 'bg-red-200', 'bg-orange-200', 'bg-yellow-200', 'bg-green-200', 'bg-blue-200'];
-    return colors[level] || 'bg-gray-200';
+    if (!level) return 'bg-gray-100 text-gray-600';
+    const colors = [
+      '',
+      'bg-red-100 text-red-700 border-red-200',
+      'bg-orange-100 text-orange-700 border-orange-200',
+      'bg-yellow-100 text-yellow-700 border-yellow-200',
+      'bg-green-100 text-green-700 border-green-200',
+      'bg-blue-100 text-blue-700 border-blue-200'
+    ];
+    return colors[level] || 'bg-gray-100 text-gray-600';
   };
+
+
 
   const handleSave = async () => {
     try {
@@ -401,95 +411,180 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
               </button>
             </>
           )}
-          {!editing && (
-            <button
-              onClick={() => setEditing(true)}
-              className="btn-secondary flex items-center"
-            >
-              <PencilIcon className="h-4 w-4 mr-2" />
-              Modifier
-            </button>
+          {!editing && skills.length > 0 && (
+            <>
+              <button
+                onClick={() => {
+                  setEditing(true);
+                  setShowAddForm(true);
+                }}
+                className="btn-primary flex items-center"
+              >
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Ajouter
+              </button>
+              <button
+                onClick={() => setEditing(true)}
+                className="btn-secondary flex items-center"
+              >
+                <PencilIcon className="h-4 w-4 mr-2" />
+                Modifier
+              </button>
+            </>
           )}
         </div>
       </div>
 
       {skills.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <StarIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-          <p>Aucune compétence renseignée.</p>
-          <p className="text-sm">Ajoutez vos compétences pour améliorer votre profil.</p>
+        <div className="text-center py-12 text-gray-500">
+          <div className="bg-gray-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+            <StarIcon className="h-10 w-10 text-gray-300" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune compétence renseignée</h3>
+          <p className="text-sm text-gray-600 mb-4">Ajoutez vos compétences pour améliorer votre profil et augmenter vos chances de matching.</p>
+          {!editing && (
+            <button
+              onClick={() => setEditing(true)}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Ajouter mes compétences
+            </button>
+          )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {skills.map((skill, index) => (
-            <div key={skill.id} className="border rounded-lg p-4">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-medium text-gray-900">{skill.skills.display_name}</h4>
-                {editing && (
-                  <button
-                    onClick={() => handleDeleteSkill(skill.id.toString())}
-                    className="text-red-500 hover:text-red-700 text-lg font-bold"
-                    disabled={saving}
-                  >
-                    ×
-                  </button>
+        <div className="space-y-4">
+          {/* Skills Summary */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="bg-blue-100 rounded-full p-2">
+                  <StarIcon className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">{skills.length} compétence{skills.length > 1 ? 's' : ''} renseignée{skills.length > 1 ? 's' : ''}</h4>
+                  <p className="text-sm text-gray-600">
+                    {skills.filter(s => s.proficiency_level && s.proficiency_level >= 4).length} expert{skills.filter(s => s.proficiency_level && s.proficiency_level >= 4).length > 1 ? 's' : ''} • {' '}
+                    {skills.filter(s => s.proficiency_level && s.proficiency_level === 3).length} confirmé{skills.filter(s => s.proficiency_level && s.proficiency_level === 3).length > 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Skills Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {skills.map((skill, index) => (
+              <div key={skill.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 text-base">{skill.skills.display_name}</h4>
+                    {skill.skills.category && (
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full mt-1 inline-block">
+                        {skill.skills.category}
+                      </span>
+                    )}
+                  </div>
+                  {editing && (
+                    <button
+                      onClick={() => handleDeleteSkill(skill.id.toString())}
+                      className="text-red-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"
+                      disabled={saving}
+                      title="Supprimer cette compétence"
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+
+                {editing ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Niveau de maîtrise</label>
+                      <select
+                        value={skill.proficiency_level || ''}
+                        onChange={(e) => {
+                          const newSkills = [...skills];
+                          newSkills[index].proficiency_level = parseInt(e.target.value) || undefined;
+                          setSkills(newSkills);
+                        }}
+                        className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">Non évalué</option>
+                        <option value="1">Débutant</option>
+                        <option value="2">Intermédiaire</option>
+                        <option value="3">Confirmé</option>
+                        <option value="4">Expert</option>
+                        <option value="5">Maître</option>
+                      </select>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getProficiencyColor(skill.proficiency_level)}`}>
+                        {getProficiencyLabel(skill.proficiency_level)}
+                      </span>
+                      <div className="flex items-center space-x-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <StarIcon
+                            key={star}
+                            className={`h-4 w-4 ${star <= (skill.proficiency_level || 0)
+                              ? 'text-yellow-400 fill-current'
+                              : 'text-gray-300'
+                              }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
-
-              {editing ? (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Niveau de maîtrise</label>
-                    <select
-                      value={skill.proficiency_level || ''}
-                      onChange={(e) => {
-                        const newSkills = [...skills];
-                        newSkills[index].proficiency_level = parseInt(e.target.value) || undefined;
-                        setSkills(newSkills);
-                      }}
-                      className="w-full text-sm border border-gray-300 rounded px-2 py-1"
-                    >
-                      <option value="">Non évalué</option>
-                      <option value="1">Débutant</option>
-                      <option value="2">Intermédiaire</option>
-                      <option value="3">Confirmé</option>
-                      <option value="4">Expert</option>
-                      <option value="5">Maître</option>
-                    </select>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <span className={`inline-block w-3 h-3 rounded-full mr-2 ${getProficiencyColor(skill.proficiency_level)}`}></span>
-                    <span className="text-sm text-gray-600">{getProficiencyLabel(skill.proficiency_level)}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
       {editing && (
         <div className="mt-6">
           {!showAddForm ? (
-            <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
-              <PlusIcon className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+            <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-dashed border-blue-200 rounded-xl p-6 text-center hover:border-blue-300 transition-colors">
+              <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                <PlusIcon className="h-6 w-6 text-blue-600" />
+              </div>
+              <h4 className="font-medium text-gray-900 mb-2">Ajouter une compétence</h4>
+              <p className="text-sm text-gray-600 mb-4">Enrichissez votre profil avec vos compétences techniques et métier</p>
               <button
                 onClick={() => setShowAddForm(true)}
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
+                <PlusIcon className="h-4 w-4 mr-2" />
                 Ajouter une compétence
               </button>
             </div>
           ) : (
-            <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
-              <h4 className="font-medium text-gray-900 mb-4">Ajouter une nouvelle compétence</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">Ajouter une nouvelle compétence</h4>
+                  <p className="text-sm text-gray-600 mt-1">Recherchez et sélectionnez une compétence dans notre base de données</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setNewSkill({ skill_name: '', proficiency_level: 3 });
+                    setSkillSuggestions([]);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nom de la compétence
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nom de la compétence *
                   </label>
                   <input
                     type="text"
@@ -499,24 +594,27 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
                       handleSearchSkills(e.target.value);
                     }}
                     placeholder="Ex: JavaScript, React, Python..."
-                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     autoComplete="off"
                   />
                   {skillSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-10">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
                       {loadingSuggestions ? (
-                        <div className="p-2 text-sm text-gray-500">Recherche...</div>
+                        <div className="p-3 text-sm text-gray-500 flex items-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                          Recherche...
+                        </div>
                       ) : (
                         skillSuggestions.map((suggestion) => (
                           <button
                             key={suggestion.id}
                             type="button"
                             onClick={() => handleSelectSuggestion(suggestion)}
-                            className="w-full text-left px-3 py-2 hover:bg-blue-50 text-sm text-gray-700 border-b last:border-b-0"
+                            className="w-full text-left px-4 py-3 hover:bg-blue-50 text-sm text-gray-700 border-b border-gray-100 last:border-b-0 transition-colors"
                           >
-                            {suggestion.display_name}
+                            <div className="font-medium">{suggestion.display_name}</div>
                             {suggestion.category && (
-                              <span className="text-xs text-gray-500 ml-2">({suggestion.category})</span>
+                              <div className="text-xs text-gray-500 mt-1">{suggestion.category}</div>
                             )}
                           </button>
                         ))
@@ -525,23 +623,27 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Niveau de maîtrise
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Niveau de maîtrise *
                   </label>
                   <select
                     value={newSkill.proficiency_level}
                     onChange={(e) => setNewSkill({ ...newSkill, proficiency_level: parseInt(e.target.value) })}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   >
-                    <option value={1}>Débutant</option>
-                    <option value={2}>Intermédiaire</option>
-                    <option value={3}>Confirmé</option>
-                    <option value={4}>Expert</option>
-                    <option value={5}>Maître</option>
+                    <option value={1}>Débutant - Notions de base</option>
+                    <option value={2}>Intermédiaire - Utilisation courante</option>
+                    <option value={3}>Confirmé - Maîtrise solide</option>
+                    <option value={4}>Expert - Expertise avancée</option>
+                    <option value={5}>Maître - Référent technique</option>
                   </select>
+                  <div className="mt-2 text-xs text-gray-500">
+                    Sélectionnez le niveau qui correspond le mieux à votre expérience
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-end space-x-3 mt-4">
+
+              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
                 <button
                   onClick={() => {
                     setShowAddForm(false);
@@ -549,8 +651,9 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
                       skill_name: '',
                       proficiency_level: 3
                     });
+                    setSkillSuggestions([]);
                   }}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   disabled={saving}
                 >
                   Annuler
@@ -558,9 +661,19 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
                 <button
                   onClick={handleAddSkill}
                   disabled={saving || !newSkill.skill_name.trim()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                  className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {saving ? 'Ajout...' : 'Ajouter'}
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Ajout...
+                    </>
+                  ) : (
+                    <>
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Ajouter la compétence
+                    </>
+                  )}
                 </button>
               </div>
             </div>
