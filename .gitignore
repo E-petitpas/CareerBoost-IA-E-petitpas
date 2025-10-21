@@ -6,14 +6,12 @@
 .env.production.local
 
 # Dépendances Node.js
-node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
 # Fichiers de build
 dist/
-build/
 .next/
 out/
 
