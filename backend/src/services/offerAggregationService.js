@@ -137,14 +137,15 @@ class OfferAggregationService {
           .from('job_offers')
           .select('id')
           .eq('dedup_hash', normalizedOffer.dedup_hash)
-          .single();
+          .maybeSingle(); // Utiliser maybeSingle() au lieu de single() pour éviter les erreurs si pas trouvé
 
         if (existingOffer) {
           skipped++;
+          console.log(`Offre ignorée (doublon): ${normalizedOffer.title} (hash: ${normalizedOffer.dedup_hash})`);
           continue;
         }
 
-        // Créer l'offre
+        // Créer l'offre avec gestion des erreurs de contrainte unique
         const { data: createdOffer, error: offerError } = await supabase
           .from('job_offers')
           .insert(normalizedOffer)
@@ -152,7 +153,19 @@ class OfferAggregationService {
           .single();
 
         if (offerError) {
+          // Gestion spécifique des erreurs de contrainte unique (doublons)
+          if (offerError.code === '23505' && offerError.message.includes('unique_dedup_hash')) {
+            console.log(`Offre ignorée (doublon détecté lors de l'insertion): ${normalizedOffer.title} (hash: ${normalizedOffer.dedup_hash})`);
+            skipped++;
+            continue;
+          }
+
           console.error('Erreur création offre:', offerError);
+          console.error('Données de l\'offre:', {
+            title: normalizedOffer.title,
+            dedup_hash: normalizedOffer.dedup_hash,
+            company_id: normalizedOffer.company_id
+          });
           errors++;
           continue;
         }
