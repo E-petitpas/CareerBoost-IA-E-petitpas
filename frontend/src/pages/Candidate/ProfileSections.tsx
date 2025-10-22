@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  PencilIcon, 
+import {
+  PencilIcon,
   PlusIcon,
   AcademicCapIcon,
   CogIcon
@@ -36,28 +36,78 @@ export const EducationSection: React.FC<{ profile: CandidateProfile | null; onUp
   };
 
   const handleAdd = async () => {
+    // Validation côté client
+    if (!formData.school || formData.school.trim().length === 0) {
+      alert('Le nom de l\'école/université est requis');
+      return;
+    }
+
+    // Nettoyer les données avant envoi
+    const cleanedData = {
+      school: formData.school.trim(),
+      degree: formData.degree.trim() || undefined,
+      field: formData.field.trim() || undefined,
+      start_date: formData.start_date || undefined,
+      end_date: formData.end_date || undefined,
+      description: formData.description.trim() || undefined
+    };
+
     try {
       setSaving(true);
-      await apiService.createEducation(formData);
+      await apiService.createEducation(cleanedData);
       setShowAddForm(false);
       resetForm();
       onUpdate();
     } catch (err: any) {
-      alert(err.message || 'Erreur lors de l\'ajout');
+      console.error('Erreur ajout formation:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Erreur lors de l\'ajout de la formation';
+
+      // Afficher les détails de validation si disponibles
+      if (err.response?.data?.details) {
+        const details = err.response.data.details.map((d: any) => `${d.field}: ${d.message}`).join('\n');
+        alert(`${errorMessage}\n\nDétails:\n${details}`);
+      } else {
+        alert(errorMessage);
+      }
     } finally {
       setSaving(false);
     }
   };
 
   const handleUpdate = async (id: string) => {
+    // Validation côté client
+    if (!formData.school || formData.school.trim().length === 0) {
+      alert('Le nom de l\'école/université est requis');
+      return;
+    }
+
+    // Nettoyer les données avant envoi
+    const cleanedData = {
+      school: formData.school.trim(),
+      degree: formData.degree.trim() || undefined,
+      field: formData.field.trim() || undefined,
+      start_date: formData.start_date || undefined,
+      end_date: formData.end_date || undefined,
+      description: formData.description.trim() || undefined
+    };
+
     try {
       setSaving(true);
-      await apiService.updateEducation(id, formData);
+      await apiService.updateEducation(id, cleanedData);
       setEditingId(null);
       resetForm();
       onUpdate();
     } catch (err: any) {
-      alert(err.message || 'Erreur lors de la mise à jour');
+      console.error('Erreur mise à jour formation:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Erreur lors de la mise à jour de la formation';
+
+      // Afficher les détails de validation si disponibles
+      if (err.response?.data?.details) {
+        const details = err.response.data.details.map((d: any) => `${d.field}: ${d.message}`).join('\n');
+        alert(`${errorMessage}\n\nDétails:\n${details}`);
+      } else {
+        alert(errorMessage);
+      }
     } finally {
       setSaving(false);
     }
@@ -65,7 +115,7 @@ export const EducationSection: React.FC<{ profile: CandidateProfile | null; onUp
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette formation ?')) return;
-    
+
     try {
       await apiService.deleteEducation(id);
       onUpdate();
@@ -303,15 +353,15 @@ export const EducationSection: React.FC<{ profile: CandidateProfile | null; onUp
                       </button>
                     </div>
                   </div>
-                  
+
                   {(education.start_date || education.end_date) && (
                     <p className="text-sm text-gray-500 mb-2">
-                      {formatDate(education.start_date)} 
+                      {formatDate(education.start_date)}
                       {education.start_date && education.end_date && ' - '}
                       {education.end_date ? formatDate(education.end_date) : (education.start_date && 'En cours')}
                     </p>
                   )}
-                  
+
                   {education.description && (
                     <p className="text-sm text-gray-700 leading-relaxed">{education.description}</p>
                   )}

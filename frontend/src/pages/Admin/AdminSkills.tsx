@@ -13,6 +13,7 @@ import { SkillCard } from '../../components/admin/skills/SkillCard';
 import { SkillModal } from '../../components/admin/skills/SkillModal';
 import { SkillUsageModal } from '../../components/admin/skills/SkillUsageModal';
 import { CategoryManagementModal } from '../../components/admin/skills/CategoryManagementModal';
+import Pagination from '../../components/common/Pagination';
 import { useToast } from '../../components/common/ToastContainer';
 import apiService from '../../services/api';
 import { Skill } from '../../types';
@@ -341,36 +342,13 @@ const AdminSkills: React.FC = () => {
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white px-4 py-4 rounded-lg shadow-sm border border-gray-200">
-                  <div className="text-sm text-gray-700 order-2 sm:order-1">
-                    Page <span className="font-semibold">{currentPage}</span> sur <span className="font-semibold">{totalPages}</span>
-                    <span className="text-gray-500 ml-2">
-                      ({skills.length} résultat{skills.length > 1 ? 's' : ''})
-                    </span>
-                  </div>
-                  <div className="flex gap-2 order-1 sm:order-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                      disabled={currentPage === 1}
-                      className="px-4 py-2"
-                    >
-                      <span className="hidden sm:inline">Précédent</span>
-                      <span className="sm:hidden">←</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                      disabled={currentPage === totalPages}
-                      className="px-4 py-2"
-                    >
-                      <span className="hidden sm:inline">Suivant</span>
-                      <span className="sm:hidden">→</span>
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalResults}
+                itemsPerPage={20}
+                onPageChange={setCurrentPage}
+              />
             </>
           )}
         </div>
