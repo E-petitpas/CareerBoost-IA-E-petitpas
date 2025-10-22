@@ -9,7 +9,7 @@ import {
   UserGroupIcon,
   ClockIcon
 } from '@heroicons/react/24/outline';
-import apiService from '../../services/api';
+import apiService, { API_BASE_URL } from '../../services/api';
 import { Application, ApplicationStatus } from '../../types';
 
 const RecruiterApplications: React.FC = () => {
@@ -75,8 +75,8 @@ const RecruiterApplications: React.FC = () => {
 
   const handleViewCV = (cvUrl: string, candidateName: string) => {
     if (cvUrl) {
-      // Construire l'URL complète
-      const fullUrl = cvUrl.startsWith('http') ? cvUrl : `http://localhost:3001${cvUrl}`;
+      // Construire l'URL complète en utilisant l'URL de base de l'API
+      const fullUrl = cvUrl.startsWith('http') ? cvUrl : `${API_BASE_URL}${cvUrl}`;
       setSelectedCVUrl(fullUrl);
       setSelectedCandidate(candidateName);
       setShowCVModal(true);
@@ -333,47 +333,38 @@ const RecruiterApplications: React.FC = () => {
             </div>
             <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
               {selectedCVUrl ? (
-                selectedCVUrl.endsWith('.html') ? (
-                  // CV généré (HTML) - affichage direct dans iframe
+                // Tous les CVs sont maintenant en PDF
+                <div className="relative h-[600px] bg-gray-50 rounded-lg overflow-hidden">
+                  {/* Boutons d'action flottants */}
+                  <div className="absolute top-4 right-4 z-10 flex space-x-2">
+                    <a
+                      href={selectedCVUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 shadow-lg"
+                      title="Ouvrir dans un nouvel onglet"
+                    >
+                      <EyeIcon className="h-4 w-4 mr-1" />
+                      Ouvrir
+                    </a>
+                    <a
+                      href={selectedCVUrl}
+                      download
+                      className="inline-flex items-center px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 shadow-lg"
+                      title="Télécharger le CV"
+                    >
+                      <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
+                      Télécharger
+                    </a>
+                  </div>
+
+                  {/* Affichage direct du PDF */}
                   <iframe
                     src={selectedCVUrl}
-                    className="w-full h-full min-h-[600px] border-0"
+                    className="w-full h-full border-0"
                     title={`CV de ${selectedCandidate}`}
                   />
-                ) : (
-                  // CV uploadé (PDF/DOC) - affichage direct
-                  <div className="relative h-[600px] bg-gray-50 rounded-lg overflow-hidden">
-                    {/* Boutons d'action flottants */}
-                    <div className="absolute top-4 right-4 z-10 flex space-x-2">
-                      <a
-                        href={selectedCVUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 shadow-lg"
-                        title="Ouvrir dans un nouvel onglet"
-                      >
-                        <EyeIcon className="h-4 w-4 mr-1" />
-                        Ouvrir
-                      </a>
-                      <a
-                        href={selectedCVUrl}
-                        download
-                        className="inline-flex items-center px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 shadow-lg"
-                        title="Télécharger le CV"
-                      >
-                        <DocumentArrowDownIcon className="h-4 w-4 mr-1" />
-                        Télécharger
-                      </a>
-                    </div>
-
-                    {/* Affichage direct du PDF */}
-                    <iframe
-                      src={selectedCVUrl}
-                      className="w-full h-full border-0"
-                      title={`CV de ${selectedCandidate}`}
-                    />
-                  </div>
-                )
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-[600px] bg-gray-50 rounded-lg">
                   <div className="text-center">

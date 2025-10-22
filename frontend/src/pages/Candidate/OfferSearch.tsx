@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { JobOffer, OfferSearchFilters, Skill } from '../../types';
-import apiService from '../../services/api';
+import apiService, { API_BASE_URL } from '../../services/api';
 import { SearchBar, OffersLayout } from '../../components/Offers';
+import Pagination from '../../components/common/Pagination';
 
 const OfferSearch: React.FC = () => {
   const [offers, setOffers] = useState<JobOffer[]>([]);
@@ -10,6 +11,9 @@ const OfferSearch: React.FC = () => {
   const [savedOffers, setSavedOffers] = useState<Set<string>>(new Set());
   const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
   const [selectedOffer, setSelectedOffer] = useState<JobOffer | null>(null);
+  const [isGeneratingLM, setIsGeneratingLM] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [filters, setFilters] = useState<OfferSearchFilters>({
     page: 1,
     limit: 10,
@@ -57,6 +61,11 @@ const OfferSearch: React.FC = () => {
 
       if (response && response.data) {
         setOffers(response.data);
+        // Mettre à jour les informations de pagination
+        if (response.pagination) {
+          setTotalPages(response.pagination.totalPages || 1);
+          setTotalItems(response.pagination.total || 0);
+        }
       } else {
         console.error('Réponse API invalide:', response);
         setOffers([]);
@@ -72,6 +81,12 @@ const OfferSearch: React.FC = () => {
 
   const handleFilterChange = (newFilters: Partial<OfferSearchFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters, page: 1 }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setFilters(prev => ({ ...prev, page }));
+    // Scroll vers le haut lors du changement de page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleOfferSelect = (offer: JobOffer) => {
@@ -157,22 +172,47 @@ const OfferSearch: React.FC = () => {
 
   const handleGenerateLM = async (offerId: string) => {
     try {
+      setIsGeneratingLM(true);
       console.log('Génération de LM pour offre:', offerId);
+
+      // Afficher un toast de chargement
+      const loadingToast = document.createElement('div');
+      loadingToast.id = 'lm-loading-toast';
+      loadingToast.className = 'fixed top-20 right-4 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center space-x-3 animate-fade-in';
+      loadingToast.innerHTML = `
+        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="font-medium">Génération de votre lettre de motivation en cours...</span>
+      `;
+      document.body.appendChild(loadingToast);
 
       const result = await apiService.generateCoverLetter(offerId);
       console.log('LM générée:', result);
+
+      // Retirer le toast de chargement
+      const toast = document.getElementById('lm-loading-toast');
+      if (toast) toast.remove();
 
       alert('🎉 Lettre de motivation générée avec succès !');
 
       // Ouvrir la LM dans un nouvel onglet
       if (result.lm_url) {
-        const fullUrl = result.lm_url.startsWith('http') ? result.lm_url : `http://localhost:3001${result.lm_url}`;
+        const fullUrl = result.lm_url.startsWith('http') ? result.lm_url : `${API_BASE_URL}${result.lm_url}`;
         window.open(fullUrl, '_blank');
       }
 
     } catch (err: any) {
       console.error('Erreur génération LM:', err);
+      
+      // Retirer le toast de chargement en cas d'erreur
+      const toast = document.getElementById('lm-loading-toast');
+      if (toast) toast.remove();
+      
       alert('❌ ' + (err.response?.data?.error || err.message || 'Erreur lors de la génération de la lettre de motivation'));
+    } finally {
+      setIsGeneratingLM(false);
     }
   };
 
@@ -214,12 +254,26 @@ const OfferSearch: React.FC = () => {
             savedOffers={savedOffers}
             loading={loading}
             error={error}
+            isGeneratingLM={isGeneratingLM}
             onOfferSelect={handleOfferSelect}
             onOfferSave={toggleSaveOffer}
             onOfferApply={handleApply}
             onCloseDetails={handleCloseDetails}
             onGenerateLM={handleGenerateLM}
           />
+
+          {/* Pagination */}
+          {!loading && !error && offers.length > 0 && (
+            <div className="mt-6">
+              <Pagination
+                currentPage={filters.page || 1}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={filters.limit || 10}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

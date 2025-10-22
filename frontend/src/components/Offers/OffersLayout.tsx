@@ -10,6 +10,7 @@ interface OffersLayoutProps {
   savedOffers: Set<string>;
   loading: boolean;
   error: string;
+  isGeneratingLM?: boolean;
   onOfferSelect: (offer: JobOffer) => void;
   onOfferSave: (offerId: string) => void;
   onOfferApply: (offerId: string) => void;
@@ -23,6 +24,7 @@ const OffersLayout: React.FC<OffersLayoutProps> = ({
   savedOffers,
   loading,
   error,
+  isGeneratingLM = false,
   onOfferSelect,
   onOfferSave,
   onOfferApply,
@@ -108,6 +110,7 @@ const OffersLayout: React.FC<OffersLayoutProps> = ({
                 <OfferDetails
                   offer={selectedOffer}
                   isSaved={savedOffers.has(selectedOffer.id)}
+                  isGeneratingLM={isGeneratingLM}
                   onSave={onOfferSave}
                   onApply={onOfferApply}
                   onClose={onCloseDetails}

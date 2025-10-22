@@ -8,7 +8,7 @@ import {
   DocumentArrowUpIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
-import apiService from '../../services/api';
+import apiService, { API_BASE_URL } from '../../services/api';
 
 interface DocumentsSectionProps {
   profile: any;
@@ -58,14 +58,17 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
 
   const handleViewDocument = (url: string) => {
     if (url) {
-      window.open(`http://localhost:3001${url}`, '_blank');
+      // Construire l'URL complète en utilisant l'URL de base de l'API
+      const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+      window.open(fullUrl, '_blank');
     }
   };
 
   const handleDownloadDocument = (url: string, filename: string) => {
     if (url) {
       const link = document.createElement('a');
-      link.href = `http://localhost:3001${url}`;
+      // Construire l'URL complète en utilisant l'URL de base de l'API
+      link.href = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
       link.download = filename;
       link.click();
     }
@@ -200,7 +203,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
             {(cvUrl || profile?.cv_url) && (
               <div className="flex items-center space-x-3">
                 <button
-                  onClick={() => handleDownloadDocument(cvUrl || profile?.cv_url, 'mon-cv.html')}
+                  onClick={() => handleDownloadDocument(cvUrl || profile?.cv_url, 'mon-cv.pdf')}
                   className="inline-flex items-center px-3 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
@@ -223,36 +226,27 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
           {(cvUrl || profile?.cv_url) ? (
             // Affichage direct du CV
             <div className="h-[800px] bg-gray-50">
-              {(cvUrl || profile?.cv_url).endsWith('.html') ? (
-                // CV généré (HTML) - affichage direct dans iframe
+              {/* Tous les CVs sont maintenant en PDF */}
+              <div className="relative h-full bg-white overflow-hidden">
+                {/* Badge de statut en haut */}
+                <div className="absolute top-4 left-4 z-10">
+                  <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 shadow-sm">
+                    <div className="flex items-center">
+                      <CheckCircleIcon className="h-4 w-4 text-green-600 mr-2" />
+                      <span className="text-sm font-medium text-green-800">
+                        CV disponible pour vos candidatures
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Affichage direct du PDF */}
                 <iframe
-                  src={`http://localhost:3001${cvUrl || profile?.cv_url}`}
+                  src={`${API_BASE_URL}${cvUrl || profile?.cv_url}`}
                   className="w-full h-full border-0 rounded-b-lg"
                   title="Mon CV"
                 />
-              ) : (
-                // CV uploadé (PDF/DOC) - affichage direct
-                <div className="relative h-full bg-white overflow-hidden">
-                  {/* Badge de statut en haut */}
-                  <div className="absolute top-4 left-4 z-10">
-                    <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 shadow-sm">
-                      <div className="flex items-center">
-                        <CheckCircleIcon className="h-4 w-4 text-green-600 mr-2" />
-                        <span className="text-sm font-medium text-green-800">
-                          CV disponible pour vos candidatures
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Affichage direct du PDF */}
-                  <iframe
-                    src={`http://localhost:3001${cvUrl || profile?.cv_url}`}
-                    className="w-full h-full border-0 rounded-b-lg"
-                    title="Mon CV"
-                  />
-                </div>
-              )}
+              </div>
             </div>
           ) : (
             // Aucun CV - Invitation à en générer un
