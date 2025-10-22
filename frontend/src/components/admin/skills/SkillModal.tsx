@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { Button } from '../../ui/button';
 import { Skill } from '../../../types';
 import apiService from '../../../services/api';
+import { Button } from '../../ui/button';
 
 // Type pour les données du formulaire (sans les champs auto-générés)
 interface SkillFormData {
