@@ -8,7 +8,9 @@ const router = express.Router();
 
 // Rechercher des offres (accessible à tous les utilisateurs authentifiés)
 router.get('/search', authenticateToken, validate(offerSchemas.search), asyncHandler(async (req, res) => {
-  const { near, radius, minScore, contract_type, experience_min, salary_min, source, page, limit } = req.query;
+  const { near, radius, minScore, contract_type, experience_min, salary_min, source } = req.query;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
 
   console.log('Recherche offres candidats - Paramètres:', { near, radius, minScore, contract_type, experience_min, salary_min, source, page, limit });
 
@@ -46,7 +48,7 @@ router.get('/search', authenticateToken, validate(offerSchemas.search), asyncHan
           display_name
         )
       )
-    `)
+    `, { count: 'exact' })
     .eq('status', 'ACTIVE') // Offres actives
     .eq('admin_status', 'APPROVED') // ✅ SEULEMENT les offres approuvées par l'admin
     .gte('published_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()) // Offres des 90 derniers jours
@@ -174,15 +176,18 @@ router.get('/search', authenticateToken, validate(offerSchemas.search), asyncHan
     }
   }));
 
-  res.json({
+  const response = {
     data: offersWithScore,
     pagination: {
       page,
       limit,
       total: count,
-      totalPages: Math.ceil(count / limit)
+      totalPages: Math.ceil((count || 0) / limit)
     }
-  });
+  };
+
+  console.log('Réponse pagination:', response.pagination);
+  res.json(response);
 }));
 
 // Récupérer une offre spécifique

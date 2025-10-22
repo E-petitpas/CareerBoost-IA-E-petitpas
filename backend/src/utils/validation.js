@@ -61,7 +61,7 @@ const candidateSchemas = {
   experience: Joi.object({
     company: Joi.string().max(200).required(),
     role_title: Joi.string().max(200).required(),
-    start_date: Joi.date().required(),
+    start_date: Joi.date().optional(),
     end_date: Joi.date().min(Joi.ref('start_date')).optional(),
     description: Joi.string().max(1000).optional()
   }),
