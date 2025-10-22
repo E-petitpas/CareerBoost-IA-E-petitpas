@@ -20,6 +20,9 @@ import {
   PaginatedResponse
 } from '../types';
 
+// Exporter l'URL de base pour l'utiliser ailleurs
+export const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:3001/api').replace('/api', '');
+
 class ApiService {
   private api: AxiosInstance;
 
