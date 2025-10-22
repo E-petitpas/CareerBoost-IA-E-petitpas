@@ -63,8 +63,11 @@ const OfferSearch: React.FC = () => {
         setOffers(response.data);
         // Mettre à jour les informations de pagination
         if (response.pagination) {
+          console.log('Pagination reçue:', response.pagination);
           setTotalPages(response.pagination.totalPages || 1);
           setTotalItems(response.pagination.total || 0);
+        } else {
+          console.warn('Aucune information de pagination reçue');
         }
       } else {
         console.error('Réponse API invalide:', response);
@@ -205,11 +208,11 @@ const OfferSearch: React.FC = () => {
 
     } catch (err: any) {
       console.error('Erreur génération LM:', err);
-      
+
       // Retirer le toast de chargement en cas d'erreur
       const toast = document.getElementById('lm-loading-toast');
       if (toast) toast.remove();
-      
+
       alert('❌ ' + (err.response?.data?.error || err.message || 'Erreur lors de la génération de la lettre de motivation'));
     } finally {
       setIsGeneratingLM(false);
@@ -263,17 +266,20 @@ const OfferSearch: React.FC = () => {
           />
 
           {/* Pagination */}
-          {!loading && !error && offers.length > 0 && (
-            <div className="mt-6">
-              <Pagination
-                currentPage={filters.page || 1}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                itemsPerPage={filters.limit || 10}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
+          {!loading && !error && offers.length > 0 && (() => {
+            console.log('Affichage pagination:', { totalPages, totalItems, offersLength: offers.length });
+            return (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={filters.page || 1}
+                  totalPages={totalPages}
+                  totalItems={totalItems}
+                  itemsPerPage={filters.limit || 10}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>

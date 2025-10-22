@@ -16,7 +16,12 @@ const Pagination: React.FC<PaginationProps> = ({
   totalItems,
   itemsPerPage
 }) => {
-  if (totalPages <= 1) return null;
+  console.log('Pagination props:', { currentPage, totalPages, totalItems, itemsPerPage });
+
+  if (totalPages <= 1 && (totalItems || 0) <= (itemsPerPage || 10)) {
+    console.log('Pagination cachée car totalPages <= 1 et totalItems <= itemsPerPage');
+    return null;
+  }
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -116,11 +121,10 @@ const Pagination: React.FC<PaginationProps> = ({
               <button
                 key={pageNumber}
                 onClick={() => onPageChange(pageNumber)}
-                className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold rounded-md ${
-                  isActive
-                    ? 'bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                    : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
-                }`}
+                className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold rounded-md ${isActive
+                  ? 'bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                  : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                  }`}
               >
                 {pageNumber}
               </button>
