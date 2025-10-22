@@ -87,6 +87,12 @@ app.use('/uploads', (req, res, next) => {
     : 'http://localhost:3000');
   res.header('Access-Control-Allow-Methods', 'GET');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+  // ✅ Permettre l’affichage en iframe
+  res.header('X-Frame-Options', 'ALLOWALL');
+
+  // ✅ Optionnel : certains navigateurs exigent aussi ce header
+  res.header('Content-Security-Policy', "frame-ancestors *");
   next();
 }, express.static('uploads'));
 
