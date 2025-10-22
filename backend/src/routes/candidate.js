@@ -710,7 +710,7 @@ router.post('/cv/generate', asyncHandler(async (req, res) => {
 
     // Générer le CV avec IA
     console.log('Génération du CV avec IA...');
-    const DocumentService = require('../services/documentService');
+    const { DocumentService } = require('../services/documentService');
     const documentService = new DocumentService();
     const result = await documentService.generateCV(candidateData);
     console.log('CV généré:', result);
@@ -722,7 +722,7 @@ router.post('/cv/generate', asyncHandler(async (req, res) => {
       .insert({
         user_id: candidateId,
         type: 'CV',
-        original_name: `CV_${user.name || 'candidat'}_${Date.now()}.html`,
+        original_name: `CV_${user.name || 'candidat'}_${Date.now()}.pdf`,
         file_path: result.filepath
       })
       .select('id')
@@ -836,7 +836,7 @@ router.post('/lm/generate', asyncHandler(async (req, res) => {
 
     // Générer la LM avec IA
     console.log('Génération de la lettre de motivation...');
-    const DocumentService = require('../services/documentService');
+    const { DocumentService } = require('../services/documentService');
     const documentService = new DocumentService();
     const result = await documentService.generateCoverLetter(data);
     console.log('LM générée:', result);
@@ -847,7 +847,7 @@ router.post('/lm/generate', asyncHandler(async (req, res) => {
       .insert({
         user_id: candidateId,
         type: 'COVER_LETTER',
-        original_name: `LM_${user.name || 'candidat'}_${offer.title || 'offre'}_${Date.now()}.html`,
+        original_name: `LM_${user.name || 'candidat'}_${offer.title || 'offre'}_${Date.now()}.pdf`,
         file_path: result.filepath
       })
       .select('id')

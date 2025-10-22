@@ -351,25 +351,30 @@ router.get('/companies/:companyId/applications', requireCompanyAccess, asyncHand
         .from('candidate_profiles')
         .select(`
           *,
-          users (
+          users!candidate_profiles_user_id_fkey (
             id,
             name,
             email,
             city,
             latitude,
-            longitude
-          ),
-          candidate_skills (
-            skill_name,
-            skill_level,
-            skill_category
-          ),
-          experiences (
-            company,
-            position,
-            start_date,
-            end_date,
-            description
+            longitude,
+            candidate_skills (
+              level,
+              years_experience,
+              skills (
+                id,
+                slug,
+                display_name,
+                category
+              )
+            ),
+            experiences (
+              company,
+              position,
+              start_date,
+              end_date,
+              description
+            )
           )
         `)
         .eq('user_id', application.users.id)
@@ -414,10 +419,18 @@ router.get('/companies/:companyId/applications', requireCompanyAccess, asyncHand
         console.warn(`⚠️ Aucune offre trouvée pour offer_id: ${application.offer_id}`);
         explanation = "Offre d'emploi non trouvée";
       } else {
-        console.log(`✅ Données récupérées - Candidat: ${candidateProfile.users?.name}, Skills: ${candidateProfile.candidate_skills?.length || 0}, Offre: ${fullOffer.title}, Skills requises: ${fullOffer.job_offer_skills?.length || 0}`);
+        // Restructurer les données pour le matching service
+        // Le service attend candidate_skills au niveau racine
+        const candidateForMatching = {
+          ...candidateProfile,
+          candidate_skills: candidateProfile.users?.candidate_skills || [],
+          experiences: candidateProfile.users?.experiences || []
+        };
+
+        console.log(`✅ Données récupérées - Candidat: ${candidateProfile.users?.name}, Skills: ${candidateForMatching.candidate_skills?.length || 0}, Offre: ${fullOffer.title}, Skills requises: ${fullOffer.job_offer_skills?.length || 0}`);
 
         const { calculateMatchingScore } = require('../services/matchingService');
-        const matchResult = await calculateMatchingScore(candidateProfile, fullOffer);
+        const matchResult = await calculateMatchingScore(candidateForMatching, fullOffer);
         score = matchResult.score;
         explanation = matchResult.explanation;
 
