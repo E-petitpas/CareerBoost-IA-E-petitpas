@@ -29,6 +29,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [skillSearchQuery, setSkillSearchQuery] = useState('');
   const [showSkillDropdown, setShowSkillDropdown] = useState(false);
 
+  // Fonction helper pour fermer l'accordion après changement de filtre
+  const handleFilterChangeAndClose = (newFilters: Partial<OfferSearchFilters>) => {
+    onFiltersChange(newFilters);
+    setShowAdvancedFilters(false);
+  };
+
   const handleSkillAdd = (skill: Skill) => {
     const currentSkills = filters.skills || [];
     if (!currentSkills.includes(skill.slug)) {
@@ -36,11 +42,15 @@ const SearchBar: React.FC<SearchBarProps> = ({
     }
     setSkillSearchQuery('');
     setShowSkillDropdown(false);
+    // Fermer l'accordion après changement de filtre
+    setShowAdvancedFilters(false);
   };
 
   const handleSkillRemove = (skillSlug: string) => {
     const currentSkills = filters.skills || [];
     onFiltersChange({ skills: currentSkills.filter(s => s !== skillSlug) });
+    // Fermer l'accordion après changement de filtre
+    setShowAdvancedFilters(false);
   };
 
   const getSkillDisplayName = (skillSlug: string) => {
@@ -178,7 +188,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       className="form-input"
                       placeholder="30000"
                       value={filters.salary_min || ''}
-                      onChange={(e) => onFiltersChange({ salary_min: e.target.value ? parseInt(e.target.value) : undefined })}
+                      onChange={(e) => handleFilterChangeAndClose({ salary_min: e.target.value ? parseInt(e.target.value) : undefined })}
                     />
                   </div>
                   <div>
@@ -188,7 +198,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       className="form-input"
                       placeholder="80000"
                       value={filters.salary_max || ''}
-                      onChange={(e) => onFiltersChange({ salary_max: e.target.value ? parseInt(e.target.value) : undefined })}
+                      onChange={(e) => handleFilterChangeAndClose({ salary_max: e.target.value ? parseInt(e.target.value) : undefined })}
                     />
                   </div>
                 </div>
@@ -203,7 +213,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     <select
                       className="form-select"
                       value={filters.experience_min || ''}
-                      onChange={(e) => onFiltersChange({ experience_min: e.target.value ? parseInt(e.target.value) : undefined })}
+                      onChange={(e) => handleFilterChangeAndClose({ experience_min: e.target.value ? parseInt(e.target.value) : undefined })}
                     >
                       <option value="">Aucune</option>
                       <option value="0">Débutant</option>
@@ -219,7 +229,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     <select
                       className="form-select"
                       value={filters.experience_max || ''}
-                      onChange={(e) => onFiltersChange({ experience_max: e.target.value ? parseInt(e.target.value) : undefined })}
+                      onChange={(e) => handleFilterChangeAndClose({ experience_max: e.target.value ? parseInt(e.target.value) : undefined })}
                     >
                       <option value="">Illimitée</option>
                       <option value="1">1 an</option>
@@ -239,7 +249,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 <select
                   className="form-select"
                   value={filters.minScore || ''}
-                  onChange={(e) => onFiltersChange({ minScore: e.target.value ? parseInt(e.target.value) : undefined })}
+                  onChange={(e) => handleFilterChangeAndClose({ minScore: e.target.value ? parseInt(e.target.value) : undefined })}
                 >
                   <option value="">Tous</option>
                   <option value="50">50%+</option>
@@ -256,7 +266,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 <select
                   className="form-select"
                   value={filters.source || ''}
-                  onChange={(e) => onFiltersChange({ source: e.target.value as 'INTERNAL' | 'EXTERNAL' | undefined })}
+                  onChange={(e) => handleFilterChangeAndClose({ source: e.target.value as 'INTERNAL' | 'EXTERNAL' | undefined })}
                 >
                   <option value="">Toutes les offres</option>
                   <option value="INTERNAL">Offres internes</option>
@@ -329,7 +339,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   type="checkbox"
                   className="form-checkbox"
                   checked={filters.remote_work || false}
-                  onChange={(e) => onFiltersChange({ remote_work: e.target.checked })}
+                  onChange={(e) => handleFilterChangeAndClose({ remote_work: e.target.checked })}
                 />
                 <span className="ml-2 text-sm text-gray-700">Télétravail possible</span>
               </label>
