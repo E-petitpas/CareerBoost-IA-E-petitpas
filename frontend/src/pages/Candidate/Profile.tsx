@@ -284,6 +284,13 @@ const SkillsSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: 
     proficiency_level: 3
   });
 
+  // Synchroniser l'état local avec les données du profil
+  useEffect(() => {
+    if (profile?.candidate_skills) {
+      setSkills(profile.candidate_skills);
+    }
+  }, [profile?.candidate_skills]);
+
   const getProficiencyLabel = (level?: number) => {
     if (!level) return 'Non évalué';
     const labels = ['', 'Débutant', 'Intermédiaire', 'Confirmé', 'Expert', 'Maître'];

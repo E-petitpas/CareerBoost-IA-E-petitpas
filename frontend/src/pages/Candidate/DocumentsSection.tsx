@@ -4,11 +4,11 @@ import {
   ArrowDownTrayIcon,
   SparklesIcon,
   EyeIcon,
-  ArrowUpTrayIcon,
-  DocumentArrowUpIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  CpuChipIcon
 } from '@heroicons/react/24/outline';
 import apiService, { API_BASE_URL } from '../../services/api';
+import CVAnalysisFlow from '../../components/CV/CVAnalysisFlow';
 
 interface DocumentsSectionProps {
   profile: any;
@@ -17,7 +17,7 @@ interface DocumentsSectionProps {
 
 const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }) => {
   const [isGeneratingCV, setIsGeneratingCV] = useState(false);
-  const [isUploadingCV, setIsUploadingCV] = useState(false);
+  const [showCVAnalysis, setShowCVAnalysis] = useState(false);
   const [cvUrl, setCvUrl] = useState<string | null>(profile?.cv_url || null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -74,55 +74,63 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
     }
   };
 
-  const handleUploadCV = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  // Fonction handleUploadCV supprimée - remplacée par l'analyse IA
 
-    // Vérifier le type de fichier
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (!allowedTypes.includes(file.type)) {
-      setError('Format de fichier non supporté. Veuillez utiliser PDF, DOC ou DOCX.');
-      return;
-    }
+  // Gestion du flux d'analyse CV
+  const handleCVAnalysisComplete = async () => {
+    setShowCVAnalysis(false);
+    setSuccess('✨ Votre profil a été enrichi avec les données de votre CV ! Le CV analysé est maintenant affiché ci-dessous.');
 
-    // Vérifier la taille (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Le fichier est trop volumineux. Taille maximum : 10MB.');
-      return;
-    }
-
-    setIsUploadingCV(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const formData = new FormData();
-      formData.append('cv', file);
-
-      const response = await apiService.uploadCV(formData);
-      setCvUrl(response.cv_url);
-      setSuccess(`✅ CV "${response.filename}" uploadé avec succès ! L'extraction automatique des compétences et expériences est en cours...`);
-      onUpdate(); // Rafraîchir le profil
-
-    } catch (err: any) {
-      console.error('Erreur upload CV:', err);
-      setError(err.response?.data?.error || '❌ Erreur lors de l\'upload du CV. Veuillez réessayer.');
-    } finally {
-      setIsUploadingCV(false);
-      // Reset input
-      event.target.value = '';
-    }
+    // Rafraîchir le profil parent pour récupérer les nouvelles données (compétences, cv_url, etc.)
+    onUpdate();
   };
+
+  const handleCVAnalysisCancel = () => {
+    setShowCVAnalysis(false);
+  };
+
+  // Si on affiche le flux d'analyse CV, on remplace tout le contenu
+  if (showCVAnalysis) {
+    return (
+      <div className="p-6">
+        <CVAnalysisFlow
+          onComplete={handleCVAnalysisComplete}
+          onCancel={handleCVAnalysisCancel}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          Génération de documents avec IA
-        </h3>
-        <p className="text-sm text-gray-600">
-          Générez automatiquement votre CV grâce à l'intelligence artificielle.
-        </p>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            CV & Lettres de motivation
+          </h3>
+          <p className="text-sm text-gray-600">
+            Gérez vos documents professionnels et utilisez l'IA pour les optimiser.
+          </p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleGenerateCV}
+            disabled={isGeneratingCV}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isGeneratingCV ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Génération...
+              </>
+            ) : (
+              <>
+                <SparklesIcon className="h-4 w-4 mr-2" />
+                Générer un CV avec IA
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -153,41 +161,38 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
         </div>
       )}
 
-      {/* Section Import de CV */}
-      <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
+      {/* Section Import de CV avec IA */}
+      <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
         <div className="flex items-center mb-4">
-          <DocumentArrowUpIcon className="h-6 w-6 text-blue-600 mr-2" />
-          <h4 className="text-lg font-medium text-gray-900">Importer un CV existant</h4>
+          <CpuChipIcon className="h-6 w-6 text-blue-600 mr-2" />
+          <h4 className="text-lg font-medium text-gray-900">Analyse intelligente de CV</h4>
+          <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+            IA
+          </span>
         </div>
 
         <p className="text-sm text-gray-600 mb-4">
-          Uploadez votre CV existant (PDF, DOC, DOCX) pour extraire automatiquement vos compétences et expériences.
+          Uploadez votre CV et laissez notre IA extraire automatiquement vos compétences,
+          expériences et formations pour enrichir votre profil.
         </p>
 
         <div className="flex items-center space-x-4">
-          <label className="flex items-center justify-center px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer">
-            {isUploadingCV ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                Upload en cours...
-              </>
-            ) : (
-              <>
-                <ArrowUpTrayIcon className="h-4 w-4 mr-2" />
-                Choisir un fichier
-              </>
-            )}
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={handleUploadCV}
-              disabled={isUploadingCV}
-              className="hidden"
-            />
-          </label>
-          <span className="text-sm text-gray-500">PDF, DOC, DOCX (max 10MB)</span>
+          <button
+            onClick={() => setShowCVAnalysis(true)}
+            disabled={isGeneratingCV}
+            className="flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <SparklesIcon className="h-5 w-5 mr-2" />
+            Analyser mon CV avec l'IA
+          </button>
+          <div className="text-sm text-gray-500">
+            <p>• Extraction automatique des données</p>
+            <p>• Formats supportés : PDF, DOC, DOCX</p>
+          </div>
         </div>
       </div>
+
+      {/* Section Import classique supprimée */}
 
       {/* Section CV - Affichage direct */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -281,28 +286,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
           )}
         </div>
 
-        {/* Bouton de régénération pour CV existant */}
-        {(cvUrl || profile?.cv_url) && (
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-            <button
-              onClick={handleGenerateCV}
-              disabled={isGeneratingCV}
-              className="w-full flex items-center justify-center px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isGeneratingCV ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                  Régénération en cours...
-                </>
-              ) : (
-                <>
-                  <SparklesIcon className="h-4 w-4 mr-2" />
-                  Régénérer mon CV avec IA
-                </>
-              )}
-            </button>
-          </div>
-        )}
+
       </div>
 
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
