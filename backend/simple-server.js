@@ -1,6 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
+
+// Routes CV Analysis
+// const cvAnalysisRoutes = require('./src/routes/cvAnalysis');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,6 +26,98 @@ app.use((req, res, next) => {
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server running' });
 });
+
+// Mock du middleware d'authentification pour les tests
+const mockAuth = (req, res, next) => {
+  // Simuler un utilisateur connecté pour les tests
+  req.user = {
+    id: 'mock-user-id',
+    email: 'test@example.com',
+    role: 'candidate'
+  };
+  next();
+};
+
+// Routes CV Analysis simplifiées pour les tests
+app.get('/api/cv-analysis/supported-formats', (req, res) => {
+  console.log('GET /api/cv-analysis/supported-formats called');
+  res.json({
+    formats: [
+      { extension: 'pdf', mimeType: 'application/pdf', description: 'PDF Document' },
+      { extension: 'doc', mimeType: 'application/msword', description: 'Microsoft Word Document' },
+      { extension: 'docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', description: 'Microsoft Word Document (OpenXML)' }
+    ],
+    maxSize: '10MB'
+  });
+});
+
+app.post('/api/cv-analysis/upload-and-analyze', (req, res) => {
+  console.log('POST /api/cv-analysis/upload-and-analyze called');
+
+  // Simulation d'analyse de CV
+  setTimeout(() => {
+    const mockAnalysis = {
+      personal_info: {
+        name: 'Jean Dupont',
+        title: 'Développeur Full Stack',
+        email: 'jean.dupont@email.com',
+        phone: '06 12 34 56 78',
+        location: 'Paris, France'
+      },
+      professional_summary: 'Développeur passionné avec 5 ans d\'expérience dans le développement web moderne.',
+      experience_years: 5,
+      skills: [
+        { name: 'JavaScript', category: 'technique', level: 'expert' },
+        { name: 'React', category: 'technique', level: 'avancé' },
+        { name: 'Node.js', category: 'technique', level: 'avancé' },
+        { name: 'Communication', category: 'soft', level: 'avancé' }
+      ],
+      experiences: [
+        {
+          company: 'TechCorp',
+          position: 'Développeur Senior',
+          start_date: '2021-01-01',
+          end_date: null,
+          description: 'Développement d\'applications web avec React et Node.js'
+        }
+      ],
+      educations: [
+        {
+          school: 'École Supérieure d\'Informatique',
+          degree: 'Master',
+          field: 'Informatique',
+          start_date: '2017-09-01',
+          end_date: '2019-06-30'
+        }
+      ]
+    };
+
+    res.json({
+      success: true,
+      data: {
+        original_name: 'cv-test.pdf',
+        file_path: '/uploads/cv/cv-test.pdf',
+        analysis: mockAnalysis
+      },
+      message: 'CV analysé avec succès'
+    });
+  }, 2000); // Simulation de 2 secondes de traitement
+});
+
+app.post('/api/cv-analysis/save-profile', (req, res) => {
+  console.log('POST /api/cv-analysis/save-profile called with:', req.body);
+
+  // Simulation de sauvegarde
+  setTimeout(() => {
+    res.json({
+      success: true,
+      message: 'Profil mis à jour avec succès avec les données du CV'
+    });
+  }, 1000);
+});
+
+// Servir les fichiers statiques uploadés
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes d'authentification simplifiées
 app.post('/api/auth/login', (req, res) => {
