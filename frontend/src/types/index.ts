@@ -293,11 +293,14 @@ export interface PaginatedResponse<T> {
 // Types pour l'analyse de CV
 export interface CVAnalysisResult {
   personal_info: {
-    name: string | null;
+    firstName: string | null;
+    lastName: string | null;
     title: string | null;
     email: string | null;
     phone: string | null;
+    address: string | null;
     location: string | null;
+    summary: string | null;
   };
   professional_summary: string | null;
   experience_years: number;

@@ -234,7 +234,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
                 <input
                   type="text"
-                  value={editedData.personal_info.name || ''}
+                  value={editedData.personal_info.firstName + ' ' + editedData.personal_info.lastName || ''}
                   onChange={(e) => updatePersonalInfo('name', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -291,7 +291,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
               <div>
                 <span className="text-sm text-gray-500">Nom :</span>
-                <p className="font-medium">{editedData.personal_info.name || 'Non renseigné'}</p>
+                <p className="font-medium">{editedData.personal_info.firstName + ' ' + editedData.personal_info.lastName || 'Non renseigné'}</p>
               </div>
               <div>
                 <span className="text-sm text-gray-500">Titre :</span>

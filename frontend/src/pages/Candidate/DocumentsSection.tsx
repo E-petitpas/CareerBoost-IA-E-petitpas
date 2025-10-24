@@ -74,8 +74,6 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
     }
   };
 
-  // Fonction handleUploadCV supprimée - remplacée par l'analyse IA
-
   // Gestion du flux d'analyse CV
   const handleCVAnalysisComplete = async () => {
     setShowCVAnalysis(false);

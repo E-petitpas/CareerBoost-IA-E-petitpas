@@ -246,7 +246,7 @@ class DocumentService {
   /**
    * Génère le HTML du CV
    */
-  generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
+generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
     return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -255,177 +255,398 @@ class DocumentService {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CV - ${user.name}</title>
     <style>
-        * { box-sizing: border-box; }
-        body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          line-height: 1.4;
-          margin: 0;
-          padding: 0;
-          color: #1f2937;
-          background: white;
+        * { 
+            box-sizing: border-box; 
+            margin: 0;
+            padding: 0;
         }
-        .container {
-          max-width: 210mm;
-          height: 297mm;
-          margin: 0 auto;
-          background: white;
-          padding: 15mm;
-          box-sizing: border-box;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.4;
+            color: #1f2937;
+            background: #f8fafc;
+            padding: 20px;
+        }
+        .cv-container {
+            max-width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
         }
         @media print {
-          body { background: white; padding: 0; margin: 0; }
-          .container { 
-            box-shadow: none; 
-            border-radius: 0; 
-            padding: 10mm;
-            page-break-after: avoid;
-          }
+            body { 
+                background: white; 
+                padding: 0; 
+            }
+            .cv-container { 
+                box-shadow: none; 
+                border-radius: 0; 
+                margin: 0;
+            }
         }
-        .header {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          text-align: center;
-          padding: 20px 25px;
-          margin-bottom: 15px;
-          border-radius: 8px;
+        
+        /* Section gauche - Bleue */
+        .left-section {
+            width: 35%;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            padding: 30px 20px;
+            position: relative;
         }
-        .header h1 {
-          margin: 0 0 5px 0;
-          font-size: 2em;
-          font-weight: 700;
-          letter-spacing: -0.5px;
+        
+        /* Formes décoratives */
+        .decoration-top {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(40px, -40px);
         }
-        .header .title {
-          font-size: 1.1em;
-          margin: 5px 0;
-          opacity: 0.95;
-          font-weight: 500;
+        .decoration-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-40px, 40px);
         }
-        .header .contact {
-          margin: 8px 0 0 0;
-          opacity: 0.9;
-          font-size: 0.85em;
+        
+        /* Photo de profil */
+        .profile-photo {
+            position: relative;
+            z-index: 10;
+            margin-bottom: 25px;
+            text-align: center;
         }
-        .content-wrapper {
-          padding: 0;
+        .photo-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
         }
-        .section {
-          margin-bottom: 15px;
-          page-break-inside: avoid;
+        .photo-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
         }
-        .section h2 {
-          color: #667eea;
-          font-size: 1.1em;
-          font-weight: 600;
-          margin: 0 0 10px 0;
-          padding-bottom: 5px;
-          border-bottom: 2px solid #667eea;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+        .profile-name {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
         }
-        .item {
-          margin-bottom: 12px;
-          padding-left: 12px;
-          border-left: 2px solid #e5e7eb;
+        .profile-title {
+            font-size: 0.9em;
+            opacity: 0.9;
         }
-        .item h3 {
-          margin: 0 0 4px 0;
-          color: #1f2937;
-          font-size: 1em;
-          font-weight: 600;
+        
+        /* Sections de la partie gauche */
+        .info-section {
+            margin-bottom: 25px;
         }
-        .item .meta {
-          color: #6b7280;
-          font-style: italic;
-          margin-bottom: 4px;
-          font-size: 0.85em;
+        .section-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .item p {
-          color: #4b5563;
-          line-height: 1.4;
-          margin: 4px 0 0 0;
-          font-size: 0.9em;
+        
+        /* Informations de contact */
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.85em;
         }
-        .skills {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
+        .contact-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 10px;
+            flex-shrink: 0;
         }
-        .skill {
-          background: linear-gradient(135deg, #eff6ff 0%, #f0f4ff 100%);
-          color: #667eea;
-          padding: 4px 10px;
-          border-radius: 12px;
-          font-size: 0.8em;
-          font-weight: 500;
-          border: 1px solid #dbeafe;
+        
+        /* Compétences avec barres */
+        .skill-item {
+            margin-bottom: 12px;
         }
-        .footer {
-          text-align: center;
-          padding: 10px;
-          color: #9ca3af;
-          font-size: 0.7em;
-          margin-top: 15px;
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .skill-name {
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .skill-bars {
+            display: flex;
+            gap: 3px;
+        }
+        .skill-bar {
+            height: 6px;
+            width: 20px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .skill-bar.filled {
+            background: white;
+        }
+        
+        /* Listes à puces */
+        .bullet-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .bullet-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.85em;
+        }
+        .bullet {
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        /* Section droite */
+        .right-section {
+            width: 65%;
+            padding: 30px;
+            background: #f8fafc;
+        }
+        
+        /* Sections de contenu */
+        .content-section {
+            margin-bottom: 25px;
+        }
+        .content-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #dbeafe;
+        }
+        
+        /* Expériences et formations */
+        .experience-item, .education-item {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .item-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 1em;
+        }
+        .item-subtitle {
+            color: #2563eb;
+            font-weight: 500;
+            font-size: 0.9em;
+            margin-top: 2px;
+        }
+        .item-date {
+            color: #6b7280;
+            font-size: 0.85em;
+            white-space: nowrap;
+            margin-left: 15px;
+        }
+        .item-description {
+            color: #4b5563;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .description-line {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 3px;
+        }
+        .bullet-point {
+            color: #2563eb;
+            margin-right: 8px;
+            flex-shrink: 0;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>${user.name}</h1>
-            <div class="title">${profile.title || 'Candidat'}</div>
-            <div class="contact">${user.email} ${user.phone ? '• ' + user.phone : ''} ${user.city ? '• ' + user.city : ''}</div>
-        </div>
-
-        <div class="content-wrapper">
-
-            ${profile.summary ? `
-            <div class="section">
-                <h2>👤 À propos</h2>
-                <p style="color: #4b5563; line-height: 1.4; font-size: 0.9em; margin: 0;">${profile.summary}</p>
-            </div>
-            ` : ''}
-
-            ${experiences && experiences.length > 0 ? `
-            <div class="section">
-                <h2>💼 Expériences Professionnelles</h2>
-                ${experiences.map(exp => `
-                <div class="item">
-                    <h3>${exp.role_title || exp.position || 'Poste'}</h3>
-                    <div class="meta">📍 ${exp.company || 'Entreprise'} • ${this.formatDate(exp.start_date)} - ${this.formatDate(exp.end_date) || 'Présent'}</div>
-                    ${exp.description ? `<p>${exp.description}</p>` : ''}
+    <div class="cv-container">
+        <!-- Section gauche -->
+        <div class="left-section">
+            <div class="decoration-top"></div>
+            <div class="decoration-bottom"></div>
+            
+            <!-- Photo et nom -->
+            <div class="profile-photo">
+                <div class="photo-container">
+                    <div class="photo-placeholder">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
                 </div>
-                `).join('')}
+                <div class="profile-name">${user.name}</div>
+                <div class="profile-title">${profile.title || 'Candidat'}</div>
             </div>
-            ` : ''}
-
-            ${educations.length > 0 ? `
-            <div class="section">
-                <h2>🎓 Formation</h2>
-                ${educations.map(edu => `
-                <div class="item">
-                    <h3>${edu.degree || 'Diplôme'} ${edu.field ? `en ${edu.field}` : ''}</h3>
-                    <div class="meta">🏫 ${edu.school} • ${this.formatDate(edu.start_date)} - ${this.formatDate(edu.end_date) || 'En cours'}</div>
-                    ${edu.description ? `<p>${edu.description}</p>` : ''}
+            
+            <!-- Informations personnelles -->
+            <div class="info-section">
+                <h2 class="section-title">Informations personnelles</h2>
+                <div class="contact-info">
+                    ${user.email ? `
+                    <div class="contact-item">
+                        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <span>${user.email}</span>
+                    </div>
+                    ` : ''}
+                    ${user.phone ? `
+                    <div class="contact-item">
+                        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                        <span>${user.phone}</span>
+                    </div>
+                    ` : ''}
+                    ${user.city ? `
+                    <div class="contact-item">
+                        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span>${user.city}</span>
+                    </div>
+                    ` : ''}
                 </div>
-                `).join('')}
             </div>
-            ` : ''}
-
+            
+            <!-- Compétences -->
             ${skills && skills.length > 0 ? `
-            <div class="section">
-                <h2>🚀 Compétences</h2>
-                <div class="skills">
-                    ${skills.map(skill => `<span class="skill">${skill.skills?.display_name || 'Compétence'}</span>`).join('')}
+            <div class="info-section">
+                <h2 class="section-title">Compétences</h2>
+                <div class="skills-list">
+                    ${skills.slice(0, 8).map(skill => `
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="skill-name">${skill.skills?.display_name || 'Compétence'}</span>
+                        </div>
+                        <div class="skill-bars">
+                            ${Array(5).fill(0).map((_, i) => `
+                            <div class="skill-bar ${i < (skill.level || 3) ? 'filled' : ''}"></div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    `).join('')}
                 </div>
             </div>
             ` : ''}
+            
+            <!-- Qualités -->
+            <div class="info-section">
+                <h2 class="section-title">Qualités</h2>
+                <div class="bullet-list">
+                    ${['Dynamique', 'Ponctuel(le)', 'Sérieux(se)', 'Motivé(e)'].map(quality => `
+                    <div class="bullet-item">
+                        <div class="bullet"></div>
+                        <span>${quality}</span>
+                    </div>
+                    `).join('')}
+                </div>
+            </div>
         </div>
-      
+        
+        <!-- Section droite -->
+        <div class="right-section">
+            <!-- Profil -->
+            ${profile.summary ? `
+            <div class="content-section">
+                <h2 class="content-title">Profil</h2>
+                <p class="item-description">${profile.summary}</p>
+            </div>
+            ` : ''}
+            
+            <!-- Expériences professionnelles -->
+            ${experiences && experiences.length > 0 ? `
+            <div class="content-section">
+                <h2 class="content-title">Expériences Professionnelles</h2>
+                ${experiences.map(exp => `
+                <div class="experience-item">
+                    <div class="item-header">
+                        <div>
+                            <div class="item-title">${exp.role_title || exp.position || 'Poste'}</div>
+                            <div class="item-subtitle">${exp.company || 'Entreprise'}</div>
+                        </div>
+                        <div class="item-date">${this.formatDate(exp.start_date)} - ${this.formatDate(exp.end_date) || 'Présent'}</div>
+                    </div>
+                    ${exp.description ? `
+                    <div class="item-description">
+                        ${exp.description.split('\n').map(line => `
+                        <div class="description-line">
+                            ${line.trim().startsWith('•') || line.trim().startsWith('-') ? `
+                            <span class="bullet-point">•</span>
+                            <span>${line.replace(/^[•-]\s*/, '')}</span>
+                            ` : `<span>${line}</span>`}
+                        </div>
+                        `).join('')}
+                    </div>
+                    ` : ''}
+                </div>
+                `).join('')}
+            </div>
+            ` : ''}
+            
+            <!-- Formation -->
+            ${educations && educations.length > 0 ? `
+            <div class="content-section">
+                <h2 class="content-title">Formation</h2>
+                ${educations.map(edu => `
+                <div class="education-item">
+                    <div class="item-header">
+                        <div>
+                            <div class="item-title">${edu.degree || 'Diplôme'} ${edu.field ? `en ${edu.field}` : ''}</div>
+                            <div class="item-subtitle">${edu.school}</div>
+                        </div>
+                        <div class="item-date">${this.formatDate(edu.start_date)} - ${this.formatDate(edu.end_date) || 'En cours'}</div>
+                    </div>
+                    ${edu.description ? `
+                    <div class="item-description">${edu.description}</div>
+                    ` : ''}
+                </div>
+                `).join('')}
+            </div>
+            ` : ''}
+        </div>
     </div>
 </body>
 </html>`;
-  }
+}
 
   /**
    * Génère le HTML de la lettre de motivation
