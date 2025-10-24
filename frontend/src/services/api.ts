@@ -273,6 +273,32 @@ class ApiService {
     return response.data;
   }
 
+  // Analyse de CV avec IA
+  async uploadAndAnalyzeCV(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append('cv', file);
+
+    const response = await this.api.post('/cv-analysis/upload-and-analyze', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 60000, // 60 secondes pour l'analyse CV avec IA
+    });
+    return response.data;
+  }
+
+  async saveCVAnalysisToProfile(data: any): Promise<any> {
+    const response = await this.api.post('/cv-analysis/save-profile', data, {
+      timeout: 60000, // 60 secondes pour la sauvegarde du profil (optimisé)
+    });
+    return response.data;
+  }
+
+  async getSupportedCVFormats(): Promise<any> {
+    const response = await this.api.get('/cv-analysis/supported-formats');
+    return response.data;
+  }
+
   async uploadCV(formData: FormData): Promise<{ cv_url: string; message: string; filename: string }> {
     const response = await this.api.post('/candidate/cv/upload', formData, {
       headers: {

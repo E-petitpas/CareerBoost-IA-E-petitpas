@@ -290,6 +290,64 @@ export interface PaginatedResponse<T> {
   };
 }
 
+// Types pour l'analyse de CV
+export interface CVAnalysisResult {
+  personal_info: {
+    name: string | null;
+    title: string | null;
+    email: string | null;
+    phone: string | null;
+    location: string | null;
+  };
+  professional_summary: string | null;
+  experience_years: number;
+  skills: CVSkill[];
+  experiences: CVExperience[];
+  educations: CVEducation[];
+}
+
+export interface CVSkill {
+  name: string;
+  category: 'technique' | 'métier' | 'soft_skill';
+  level: 'débutant' | 'intermédiaire' | 'avancé' | 'expert';
+}
+
+export interface CVExperience {
+  company: string;
+  position: string;
+  start_date: string | null;
+  end_date: string | null;
+  description: string;
+}
+
+export interface CVEducation {
+  school: string;
+  degree: string;
+  field: string;
+  start_date: string | null;
+  end_date: string | null;
+  description: string;
+}
+
+export interface CVUploadResponse {
+  success: boolean;
+  message: string;
+  data: {
+    document_id: string;
+    file_url: string;
+    original_name: string;
+    file_size: number;
+    text_stats: {
+      characters: number;
+      words: number;
+      lines: number;
+      estimatedReadingTime: number;
+    };
+    analysis: CVAnalysisResult;
+    extracted_text: string;
+  };
+}
+
 // Types pour les filtres de recherche
 export interface OfferSearchFilters {
   near?: string;
