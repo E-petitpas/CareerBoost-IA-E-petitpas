@@ -17,6 +17,7 @@ const applicationRoutes = require('./routes/applications');
 const notificationRoutes = require('./routes/notifications');
 const skillsRoutes = require('./routes/skills');
 const companiesRoutes = require('./routes/companies');
+const cvAnalysisRoutes = require('./routes/cvAnalysis');
 
 // Services
 const offerAggregationService = require('./services/offerAggregationService');
@@ -79,6 +80,7 @@ app.use('/api/offers', offerRoutes);
 app.use('/api/applications', authenticateToken, applicationRoutes);
 app.use('/api/notifications', authenticateToken, notificationRoutes);
 app.use('/api/skills', skillsRoutes);
+app.use('/api/cv-analysis', authenticateToken, cvAnalysisRoutes);
 
 // Static files for uploads with CORS headers
 app.use('/uploads', (req, res, next) => {
@@ -106,7 +108,7 @@ app.use(errorHandler);
 
 // Start server
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur le port ${PORT}`);
     console.log(`📊 Environnement: ${process.env.NODE_ENV}`);
     console.log(`🔗 Health check: http://localhost:${PORT}/health`);
@@ -117,6 +119,9 @@ if (process.env.NODE_ENV !== 'test') {
       offerAggregationService.startAutoSync();
     }
   });
+
+  // Configurer le timeout du serveur pour les requêtes longues (analyse CV)
+  server.timeout = 120000; // 2 minutes
 }
 
 module.exports = app;
