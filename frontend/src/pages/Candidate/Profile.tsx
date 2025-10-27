@@ -115,6 +115,19 @@ const CandidateProfile: React.FC = () => {
 };
 
 // Composants pour chaque section
+// Fonction utilitaire pour construire l'URL complète
+const getFullPhotoUrl = (photoUrl: string | null | undefined): string | null => {
+  if (!photoUrl) return null;
+  if (photoUrl.startsWith('http')) return photoUrl;
+
+  // Construire l'URL complète du backend
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+  const baseUrl = apiUrl.replace('/api', ''); // Enlever /api pour les fichiers statiques
+  const result = `${baseUrl}${photoUrl}`;
+  console.log('Construction URL photo:', { photoUrl, apiUrl, baseUrl, result });
+  return result;
+};
+
 const GeneralInfoSection: React.FC<{ profile: CandidateProfileType | null; onUpdate: () => void }> = ({ profile, onUpdate }) => {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -123,6 +136,19 @@ const GeneralInfoSection: React.FC<{ profile: CandidateProfileType | null; onUpd
     experience_years: profile?.experience_years || 0,
   });
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(getFullPhotoUrl(profile?.users?.photo_url));
+
+  // Mettre à jour photoPreview quand le profil change
+  useEffect(() => {
+    const newPhotoUrl = getFullPhotoUrl(profile?.users?.photo_url);
+    console.log('Profile photo URL changed:', {
+      oldPreview: photoPreview,
+      newUrl: profile?.users?.photo_url,
+      newPreview: newPhotoUrl
+    });
+    setPhotoPreview(newPhotoUrl);
+  }, [profile?.users?.photo_url]);
 
   const handleSave = async () => {
     try {
@@ -144,6 +170,61 @@ const GeneralInfoSection: React.FC<{ profile: CandidateProfileType | null; onUpd
       experience_years: profile?.experience_years || 0,
     });
     setEditing(false);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingPhoto(true);
+      console.log('=== UPLOAD PHOTO FRONTEND ===');
+      console.log('Fichier sélectionné:', file.name, file.size, file.type);
+
+      // Créer un aperçu local
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // Uploader la photo
+      console.log('Envoi du fichier au serveur...');
+      const result = await apiService.uploadProfilePhoto(file);
+      console.log('Réponse du serveur:', result);
+
+      // Mettre à jour l'aperçu avec l'URL complète retournée par le serveur
+      setPhotoPreview(result.photo_url);
+      console.log('Photo preview mise à jour avec:', result.photo_url);
+      console.log('Photo uploadée avec succès');
+      console.log('=== FIN UPLOAD PHOTO FRONTEND ===');
+      onUpdate();
+    } catch (err: any) {
+      console.error('Erreur upload photo:', err);
+      alert(err.message || 'Erreur lors de l\'upload de la photo');
+      setPhotoPreview(getFullPhotoUrl(profile?.users?.photo_url));
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handlePhotoDelete = async () => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer votre photo de profil ?')) {
+      return;
+    }
+
+    try {
+      setUploadingPhoto(true);
+      await apiService.deleteProfilePhoto();
+      setPhotoPreview(null);
+      onUpdate();
+    } catch (err: any) {
+      alert(err.message || 'Erreur lors de la suppression de la photo');
+      // Restaurer la photo en cas d'erreur
+      setPhotoPreview(getFullPhotoUrl(profile?.users?.photo_url));
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
 
   return (
@@ -217,6 +298,63 @@ const GeneralInfoSection: React.FC<{ profile: CandidateProfileType | null; onUpd
         </div>
       ) : (
         <div className="space-y-6">
+          {/* Section Photo de profil */}
+          <div className="flex items-center space-x-6 pb-6 border-b border-gray-200">
+            <div className="flex-shrink-0">
+              {(() => {
+                console.log('🔍 Rendu photo section:', {
+                  photoPreview,
+                  profilePhotoUrl: profile?.users?.photo_url,
+                  hasPhotoPreview: !!photoPreview
+                });
+                return null;
+              })()}
+              {photoPreview ? (
+                <img
+                  src={photoPreview}
+                  alt="Photo de profil"
+                  className="h-24 w-24 rounded-full object-cover border-2 border-blue-200"
+                  onLoad={() => console.log('✅ Image chargée avec succès:', photoPreview)}
+                  onError={(e) => {
+                    console.error('❌ Erreur chargement image:', photoPreview);
+                    console.error('Erreur détails:', e);
+                  }}
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
+                  <UserCircleIcon className="h-12 w-12 text-gray-400" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-gray-900 mb-3">Photo de profil</h4>
+              <div className="flex space-x-3">
+                <label className="relative cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
+                    onChange={handlePhotoUpload}
+                    disabled={uploadingPhoto}
+                    className="hidden"
+                  />
+                  <span className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    {uploadingPhoto ? 'Upload...' : 'Changer la photo'}
+                  </span>
+                </label>
+                {photoPreview && (
+                  <button
+                    onClick={handlePhotoDelete}
+                    disabled={uploadingPhoto}
+                    className="inline-flex items-center px-4 py-2 bg-red-100 text-red-700 text-sm font-medium rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Supprimer
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">JPG, PNG ou WebP. Max 5MB.</p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h4 className="text-sm font-medium text-gray-900 mb-2">Informations personnelles</h4>

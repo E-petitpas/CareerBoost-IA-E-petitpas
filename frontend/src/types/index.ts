@@ -8,6 +8,7 @@ export interface User {
   city?: string;
   latitude?: number;
   longitude?: number;
+  photo_url?: string;
   company_memberships?: CompanyMembership[];
 }
 
