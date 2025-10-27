@@ -51,7 +51,7 @@ router.post('/apply', requireRole('CANDIDATE'), validate(applicationSchemas.appl
       .from('candidate_profiles')
       .select(`
         *,
-        users (id, name, email, city, latitude, longitude),
+        users (id, name, email, city, latitude, longitude, photo_url),
         candidate_skills (
           *,
           skills (id, slug, display_name)

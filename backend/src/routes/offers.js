@@ -90,7 +90,7 @@ router.get('/search', authenticateToken, validate(offerSchemas.search), asyncHan
     .from('candidate_profiles')
     .select(`
       *,
-      users (id, name, email, city, latitude, longitude)
+      users (id, name, email, city, latitude, longitude, photo_url)
     `)
     .eq('user_id', req.user.id)
     .maybeSingle();
@@ -226,7 +226,7 @@ router.get('/:id', authenticateToken, asyncHandler(async (req, res) => {
     .from('candidate_profiles')
     .select(`
       *,
-      users (id, name, email, city, latitude, longitude)
+      users (id, name, email, city, latitude, longitude, photo_url)
     `)
     .eq('user_id', req.user.id)
     .maybeSingle();

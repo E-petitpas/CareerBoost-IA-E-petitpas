@@ -318,6 +318,7 @@ router.get('/companies/:companyId/applications', requireCompanyAccess, asyncHand
         name,
         email,
         city,
+        photo_url,
         candidate_profiles (
           title,
           experience_years,
@@ -358,6 +359,7 @@ router.get('/companies/:companyId/applications', requireCompanyAccess, asyncHand
             city,
             latitude,
             longitude,
+            photo_url,
             candidate_skills (
               level,
               years_experience,
