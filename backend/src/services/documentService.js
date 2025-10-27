@@ -336,6 +336,11 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
             border: 4px solid rgba(255, 255, 255, 0.3);
             background: rgba(255, 255, 255, 0.2);
         }
+        .photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
         .photo-placeholder {
             width: 100%;
             height: 100%;
@@ -502,14 +507,11 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
             
             <!-- Photo et nom -->
             <div class="profile-photo">
+                ${user.photo_url ? `
                 <div class="photo-container">
-                    <div class="photo-placeholder">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
+                    <img src="${user.photo_url.startsWith('http') ? user.photo_url : 'http://localhost:3001' + user.photo_url}" alt="${user.name}" />
                 </div>
+                ` : ''}
                 <div class="profile-name">${user.name}</div>
                 <div class="profile-title">${profile.title || 'Candidat'}</div>
             </div>

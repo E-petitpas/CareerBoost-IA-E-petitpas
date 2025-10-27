@@ -10,14 +10,14 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const router = express.Router();
 
 // Créer les répertoires d'upload s'ils n'existent pas
-const uploadDirs = ['uploads', 'uploads/cv', 'uploads/lm'];
+const uploadDirs = ['uploads', 'uploads/cv', 'uploads/lm', 'uploads/photos'];
 uploadDirs.forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
 });
 
-// Configuration multer pour l'upload de fichiers
+// Configuration multer pour l'upload de fichiers CV
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/cv/');
@@ -47,6 +47,32 @@ const upload = multer({
   }
 });
 
+// Configuration multer pour l'upload de photos de profil
+const photoStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/photos/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'photo-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const photoUpload = multer({
+  storage: photoStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB pour les photos
+  },
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Type de fichier non supporté. Utilisez JPG, PNG ou WebP.'));
+    }
+  }
+});
+
 // Middleware pour vérifier le rôle candidat
 router.use(requireRole('CANDIDATE'));
 
@@ -64,7 +90,8 @@ router.get('/profile', asyncHandler(async (req, res) => {
         phone,
         city,
         latitude,
-        longitude
+        longitude,
+        photo_url
       )
     `)
     .eq('user_id', req.user.id)
@@ -90,7 +117,8 @@ router.get('/profile', asyncHandler(async (req, res) => {
           phone,
           city,
           latitude,
-          longitude
+          longitude,
+          photo_url
         )
       `)
       .single();
@@ -1051,6 +1079,109 @@ router.post('/cv/upload', upload.single('cv'), asyncHandler(async (req, res) => 
   } catch (error) {
     console.error('Erreur upload CV:', error);
     res.status(500).json({ error: error.message || 'Erreur lors de l\'upload du CV' });
+  }
+}));
+
+// Upload de photo de profil
+router.post('/profile/photo', photoUpload.single('photo'), asyncHandler(async (req, res) => {
+  try {
+    const candidateId = req.user.id;
+    console.log('=== UPLOAD PHOTO DEBUG ===');
+    console.log('Candidate ID:', candidateId);
+    console.log('User object:', req.user);
+
+    if (!req.file) {
+      console.error('Aucun fichier fourni');
+      return res.status(400).json({ error: 'Aucun fichier fourni' });
+    }
+
+    console.log('Fichier reçu:', req.file.filename);
+
+    // Construire l'URL complète avec le protocole et le host
+    const protocol = req.protocol || 'http';
+    const host = req.get('host') || 'localhost:3001';
+    const photoUrl = `${protocol}://${host}/uploads/photos/${req.file.filename}`;
+    const photoUrlRelative = `/uploads/photos/${req.file.filename}`;
+
+    console.log('URL relative:', photoUrlRelative);
+    console.log('URL complète:', photoUrl);
+
+    // Mettre à jour la photo_url dans la table users (stocker l'URL relative)
+    console.log('Tentative de mise à jour de la base de données...');
+    const { data: user, error: updateError } = await supabase
+      .from('users')
+      .update({ photo_url: photoUrlRelative })
+      .eq('id', candidateId)
+      .select('photo_url')
+      .single();
+
+    console.log('Réponse Supabase:', { data: user, error: updateError });
+
+    if (updateError) {
+      console.error('Erreur mise à jour photo:', updateError);
+      return res.status(500).json({ error: 'Erreur lors de la sauvegarde de la photo', details: updateError.message });
+    }
+
+    console.log('Photo uploadée avec succès:', photoUrl);
+    console.log('=== FIN UPLOAD PHOTO DEBUG ===');
+    res.json({
+      photo_url: photoUrl, // Retourner l'URL complète au frontend
+      message: 'Photo uploadée avec succès'
+    });
+
+  } catch (error) {
+    console.error('Erreur upload photo:', error);
+    res.status(500).json({ error: error.message || 'Erreur lors de l\'upload de la photo' });
+  }
+}));
+
+// Supprimer la photo de profil
+router.delete('/profile/photo', asyncHandler(async (req, res) => {
+  try {
+    const candidateId = req.user.id;
+
+    // Récupérer l'URL actuelle de la photo
+    const { data: user, error: fetchError } = await supabase
+      .from('users')
+      .select('photo_url')
+      .eq('id', candidateId)
+      .single();
+
+    if (fetchError) {
+      console.error('Erreur récupération photo:', fetchError);
+      return res.status(500).json({ error: 'Erreur lors de la récupération de la photo' });
+    }
+
+    // Supprimer le fichier physique si elle existe
+    if (user.photo_url) {
+      const filePath = path.join(__dirname, '../../' + user.photo_url);
+      try {
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log('Fichier photo supprimé:', filePath);
+        }
+      } catch (fileError) {
+        console.warn('Erreur suppression fichier photo:', fileError);
+      }
+    }
+
+    // Mettre à jour la photo_url à null dans la table users
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ photo_url: null })
+      .eq('id', candidateId);
+
+    if (updateError) {
+      console.error('Erreur suppression photo:', updateError);
+      return res.status(500).json({ error: 'Erreur lors de la suppression de la photo' });
+    }
+
+    console.log('Photo supprimée avec succès');
+    res.json({ message: 'Photo supprimée avec succès' });
+
+  } catch (error) {
+    console.error('Erreur suppression photo:', error);
+    res.status(500).json({ error: error.message || 'Erreur lors de la suppression de la photo' });
   }
 }));
 
