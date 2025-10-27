@@ -22,8 +22,8 @@ class AIService {
       const profileTitle = profile?.title || 'Non spécifié';
       const profileSummary = profile?.summary || 'Aucun résumé fourni';
       const experienceYears = profile?.experience_years || 0;
-
-      const prompt = `Tu es un expert en rédaction de CV. Génère un CV professionnel et attractif en français pour ce candidat.
+      
+      const prompt = `Tu es un expert en rédaction de CV et en recrutement. Génère un CV professionnel, attractif et optimisé pour une page en français pour ce candidat.
 
 INFORMATIONS DU CANDIDAT:
 Nom: ${userName}
@@ -49,54 +49,48 @@ ${experiences && experiences.length > 0 ? experiences.map(e => `- Poste: ${e.rol
   Période: ${e.start_date || 'Date non spécifiée'} - ${e.end_date || 'En cours'}
   Description: ${e.description || 'Pas de description'}`).join('\n') : 'Aucune expérience renseignée'}
 
-INSTRUCTIONS:
-- Utilise EXACTEMENT les noms d'entreprises et d'écoles fournis dans les données ci-dessus
-- Si une école s'appelle "Université de Paris", écris "Université de Paris", pas "VRAI nom de l'école"
-- Si une entreprise s'appelle "Google", écris "Google", pas "Nom de l'entreprise du candidat"
-- IMPORTANT: Le CV doit tenir sur UNE SEULE PAGE - sois concis et synthétique
-- Limite les descriptions à 2-3 points clés maximum par expérience
-- Résumé professionnel: maximum 2 phrases courtes et percutantes
-- Compétences: organise en 3-4 catégories maximum (Langages, Frameworks, Outils, Bases de données, etc.)
-- Maximum 2-3 compétences par catégorie pour tenir sur une page
-- Expériences: maximum 3 expériences les plus récentes/importantes
-- Formations: maximum 2-3 formations les plus pertinentes
-- Descriptions: phrases courtes, mots-clés techniques, résultats concrets
-- Formate les dates de manière lisible (ex: "Jan 2020 - Déc 2023")
+CONSIGNES STRICTES:
+1. UTILISER EXACTEMENT les noms d'entreprises et d'écoles fournis
+2. Format des dates: "Jan 2020 - Déc 2023" ou "Mars 2021 - Présent"
+3. Résumé professionnel: 1-2 phrases maximum, percutantes
+4. Maximum 3 expériences (les plus récentes/pertinentes)
+5. Maximum 2-3 formations (les plus pertinentes)
+6. 3-4 catégories de compétences maximum
+7. 2-3 compétences par catégorie maximum
+8. Descriptions d'expérience: 2-3 points maximum par expérience
+9. Ton professionnel, phrases courtes, verbes d'action
+10. Résultats concrets et mesurables quand possible
 
-Retourne UNIQUEMENT un objet JSON valide avec cette structure:
+STRUCTURE JSON REQUISE:
 {
-  "profile_summary": "Résumé professionnel concis en 1-2 phrases maximum",
+  "profile_summary": "string (1-2 phrases max)",
   "skills_categories": {
-    "Langages de programmation": [
-      {"name": "JavaScript", "level": 4},
-      {"name": "Python", "level": 3}
+    "NomCatégorie1": [
+      {"name": "Compétence1", "level": 1-5},
+      {"name": "Compétence2", "level": 1-5}
     ],
-    "Frameworks & Librairies": [
-      {"name": "React", "level": 4},
-      {"name": "Node.js", "level": 3}
-    ],
-    "Outils & Technologies": [
-      {"name": "Git", "level": 4},
-      {"name": "Docker", "level": 3}
+    "NomCatégorie2": [
+      {"name": "Compétence3", "level": 1-5},
+      {"name": "Compétence4", "level": 1-5}
     ]
   },
   "experiences": [
     {
-      "title": "Titre du poste",
-      "company": "Nom exact de l'entreprise",
-      "period": "Période courte (ex: Jan 2020 - Déc 2023)",
-      "description": "2-3 réalisations clés séparées par des points. Développement d'applications web modernes. Optimisation des performances et qualité du code. Collaboration équipe technique."
+      "title": "string",
+      "company": "string (nom exact)",
+      "period": "string (format court)",
+      "description": "string (3-4 points avec verbes d'action)"
     }
   ],
   "educations": [
     {
-      "degree": "Diplôme exact",
-      "school": "Nom exact de l'école",
-      "period": "Période courte",
-      "description": "Description courte si pertinente (optionnel)"
+      "degree": "string (diplôme exact)",
+      "school": "string (nom exact)",
+      "period": "string (format court)",
+      "description": "string (optionnel)"
     }
   ],
-  "qualities": ["Qualité 1", "Qualité 2", "Qualité 3", "Qualité 4"]
+  "qualities": ["string", "string", "string", "string"]
 }`;
 
       const response = await this.openai.chat.completions.create({
