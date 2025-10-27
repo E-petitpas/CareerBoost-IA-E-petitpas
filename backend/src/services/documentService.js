@@ -177,7 +177,7 @@ class DocumentService {
       const relativeFilepath = `uploads/cv/${filename}`;
 
       console.log('CV PDF généré:', url);
-      return { url, filepath: relativeFilepath };
+      return { url, filepath: relativeFilepath, aiContent };
 
     } catch (error) {
       console.error('Erreur génération CV:', error);
@@ -269,7 +269,7 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
         }
         .cv-container {
             max-width: 210mm;
-            min-height: 297mm;
+            height: 297mm;
             margin: 0 auto;
             background: white;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -350,13 +350,38 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
             color: rgba(255, 255, 255, 0.6);
         }
         .profile-name {
-            font-size: 1.5em;
-            font-weight: 700;
-            margin-bottom: 5px;
+            font-size: 1.1em;
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.2px;
+            opacity: 0.85;
         }
         .profile-title {
-            font-size: 0.9em;
-            opacity: 0.9;
+            font-size: 1.3em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 8px;
+            position: relative;
+            background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 50%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            font-family: 'Arial Black', Arial, sans-serif;
+        }
+        .profile-title::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -10px;
+            right: -10px;
+            bottom: -5px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border-radius: 8px;
+            z-index: -1;
         }
         
         /* Sections de la partie gauche */
@@ -365,10 +390,23 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
         }
         .section-title {
             font-size: 1.1em;
-            font-weight: 600;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 25px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1px;
         }
         
         /* Informations de contact */
@@ -412,7 +450,27 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
         .skill-bar.filled {
             background: white;
         }
-        
+
+        /* Catégories de compétences */
+        .skills-category {
+            margin-bottom: 18px;
+        }
+        .category-title {
+            font-size: 0.8em;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-bottom: 1px solid rgba(37, 99, 235, 0.2);
+            padding-bottom: 4px;
+        }
+        .skills-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
         /* Listes à puces */
         .bullet-list {
             display: flex;
@@ -436,27 +494,45 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
         /* Section droite */
         .right-section {
             width: 65%;
-            padding: 30px;
+            padding: 25px;
             background: #f8fafc;
         }
-        
+
         /* Sections de contenu */
         .content-section {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         .content-title {
-            font-size: 1.3em;
+            font-size: 1.4em;
             font-weight: 700;
             color: #2563eb;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #dbeafe;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #dbeafe;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+        }
+        .content-title::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #2563eb, #3b82f6);
+            border-radius: 2px;
         }
         
         /* Expériences et formations */
         .experience-item, .education-item {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             position: relative;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 3px solid #2563eb;
         }
         .item-header {
             display: flex;
@@ -489,12 +565,18 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
         .description-line {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 3px;
+            margin-bottom: 8px;
+            line-height: 1.6;
+            padding: 4px 0;
         }
         .bullet-point {
             color: #2563eb;
-            margin-right: 8px;
+            margin-right: 12px;
             flex-shrink: 0;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-top: 2px;
+            text-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
         }
     </style>
 </head>
@@ -550,23 +632,45 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
             </div>
             
             <!-- Compétences -->
-            ${skills && skills.length > 0 ? `
+            ${(aiContent?.skills_categories && Object.keys(aiContent.skills_categories).length > 0) || (skills && skills.length > 0) ? `
             <div class="info-section">
                 <h2 class="section-title">Compétences</h2>
-                <div class="skills-list">
-                    ${skills.slice(0, 8).map(skill => `
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span class="skill-name">${skill.skills?.display_name || 'Compétence'}</span>
-                        </div>
-                        <div class="skill-bars">
-                            ${Array(5).fill(0).map((_, i) => `
-                            <div class="skill-bar ${i < (skill.level || 3) ? 'filled' : ''}"></div>
+                ${aiContent?.skills_categories && Object.keys(aiContent.skills_categories).length > 0 ? `
+                    ${Object.entries(aiContent.skills_categories).map(([category, categorySkills]) => `
+                    <div class="skills-category">
+                        <h3 class="category-title">${category}</h3>
+                        <div class="skills-list">
+                            ${categorySkills.map(skill => `
+                            <div class="skill-item">
+                                <div class="skill-header">
+                                    <span class="skill-name">${skill.name}</span>
+                                </div>
+                                <div class="skill-bars">
+                                    ${Array(5).fill(0).map((_, i) => `
+                                    <div class="skill-bar ${i < (skill.level || 3) ? 'filled' : ''}"></div>
+                                    `).join('')}
+                                </div>
+                            </div>
                             `).join('')}
                         </div>
                     </div>
                     `).join('')}
-                </div>
+                ` : `
+                    <div class="skills-list">
+                        ${skills.slice(0, 8).map(skill => `
+                        <div class="skill-item">
+                            <div class="skill-header">
+                                <span class="skill-name">${skill.skills?.display_name || 'Compétence'}</span>
+                            </div>
+                            <div class="skill-bars">
+                                ${Array(5).fill(0).map((_, i) => `
+                                <div class="skill-bar ${i < (skill.proficiency_level || 3) ? 'filled' : ''}"></div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        `).join('')}
+                    </div>
+                `}
             </div>
             ` : ''}
             
@@ -574,7 +678,7 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
             <div class="info-section">
                 <h2 class="section-title">Qualités</h2>
                 <div class="bullet-list">
-                    ${['Dynamique', 'Ponctuel(le)', 'Sérieux(se)', 'Motivé(e)'].map(quality => `
+                    ${(aiContent?.qualities || ['Dynamique', 'Ponctuel(le)', 'Sérieux(se)', 'Motivé(e)']).map(quality => `
                     <div class="bullet-item">
                         <div class="bullet"></div>
                         <span>${quality}</span>
@@ -587,55 +691,48 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
         <!-- Section droite -->
         <div class="right-section">
             <!-- Profil -->
-            ${profile.summary ? `
+            ${(aiContent?.profile_summary || profile.summary) ? `
             <div class="content-section">
                 <h2 class="content-title">Profil</h2>
-                <p class="item-description">${profile.summary}</p>
+                <p class="item-description">${aiContent?.profile_summary || profile.summary}</p>
             </div>
             ` : ''}
-            
+
             <!-- Expériences professionnelles -->
-            ${experiences && experiences.length > 0 ? `
+            ${(aiContent?.experiences && aiContent.experiences.length > 0) || (experiences && experiences.length > 0) ? `
             <div class="content-section">
                 <h2 class="content-title">Expériences Professionnelles</h2>
-                ${experiences.map(exp => `
+                ${(aiContent?.experiences && aiContent.experiences.length > 0 ? aiContent.experiences : experiences).slice(0, 3).map(exp => `
                 <div class="experience-item">
                     <div class="item-header">
                         <div>
-                            <div class="item-title">${exp.role_title || exp.position || 'Poste'}</div>
+                            <div class="item-title">${exp.title || exp.role_title || exp.position || 'Poste'}</div>
                             <div class="item-subtitle">${exp.company || 'Entreprise'}</div>
                         </div>
-                        <div class="item-date">${this.formatDate(exp.start_date)} - ${this.formatDate(exp.end_date) || 'Présent'}</div>
+                        <div class="item-date">${exp.period || `${this.formatDate(exp.start_date)} - ${this.formatDate(exp.end_date) || 'Présent'}`}</div>
                     </div>
                     ${exp.description ? `
                     <div class="item-description">
-                        ${exp.description.split('\n').map(line => `
-                        <div class="description-line">
-                            ${line.trim().startsWith('•') || line.trim().startsWith('-') ? `
-                            <span class="bullet-point">•</span>
-                            <span>${line.replace(/^[•-]\s*/, '')}</span>
-                            ` : `<span>${line}</span>`}
-                        </div>
-                        `).join('')}
+                        ${this.formatDescriptionAsBullets(exp.description)}
                     </div>
                     ` : ''}
                 </div>
                 `).join('')}
             </div>
             ` : ''}
-            
+
             <!-- Formation -->
-            ${educations && educations.length > 0 ? `
+            ${(aiContent?.educations && aiContent.educations.length > 0) || (educations && educations.length > 0) ? `
             <div class="content-section">
                 <h2 class="content-title">Formation</h2>
-                ${educations.map(edu => `
+                ${(aiContent?.educations && aiContent.educations.length > 0 ? aiContent.educations : educations).slice(0, 3).map(edu => `
                 <div class="education-item">
                     <div class="item-header">
                         <div>
                             <div class="item-title">${edu.degree || 'Diplôme'} ${edu.field ? `en ${edu.field}` : ''}</div>
                             <div class="item-subtitle">${edu.school}</div>
                         </div>
-                        <div class="item-date">${this.formatDate(edu.start_date)} - ${this.formatDate(edu.end_date) || 'En cours'}</div>
+                        <div class="item-date">${edu.period || `${this.formatDate(edu.start_date)} - ${this.formatDate(edu.end_date) || 'En cours'}`}</div>
                     </div>
                     ${edu.description ? `
                     <div class="item-description">${edu.description}</div>
@@ -763,16 +860,105 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
   }
 
   /**
-   * Formate une date
+   * Formate une description en puces (maximum 3 puces pour tenir sur une page)
+   */
+  formatDescriptionAsBullets(description) {
+    if (!description) return '';
+
+    // Diviser le texte en phrases intelligemment
+    let sentences = description
+      .split(/[.!?]+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 15); // Ignorer les phrases trop courtes
+
+    // Limiter à 3 puces maximum pour tenir sur une page
+    sentences = sentences.slice(0, 3);
+
+    // Si on a plusieurs phrases, les afficher en puces
+    if (sentences.length > 1) {
+      return sentences.map(sentence => `
+        <div class="description-line">
+          <span class="bullet-point">•</span>
+          <span>${sentence.trim()}${sentence.endsWith('.') || sentence.endsWith('!') || sentence.endsWith('?') ? '' : '.'}</span>
+        </div>
+      `).join('');
+    } else {
+      // Si c'est une seule phrase longue, la diviser par des mots-clés
+      const keywords = [
+        'Refonte', 'Conception', 'Développement', 'Intégration', 'Mise en place',
+        'Déploiement', 'Optimisation', 'Collaboration', 'Contribution', 'Gestion',
+        'Amélioration', 'Implémentation', 'Configuration', 'Maintenance'
+      ];
+
+      let bulletPoints = [];
+      let currentText = description;
+
+      // Chercher les mots-clés et créer des puces
+      keywords.forEach(keyword => {
+        const regex = new RegExp(`(${keyword}[^.]*?(?=[A-Z]|$))`, 'gi');
+        const matches = currentText.match(regex);
+        if (matches && bulletPoints.length < 3) { // Limiter à 3 puces
+          matches.forEach(match => {
+            if (bulletPoints.length < 3) {
+              bulletPoints.push(match.trim());
+              currentText = currentText.replace(match, '').trim();
+            }
+          });
+        }
+      });
+
+      // Si on a trouvé des points, les afficher en puces
+      if (bulletPoints.length > 1) {
+        return bulletPoints.slice(0, 3).map(point => `
+          <div class="description-line">
+            <span class="bullet-point">•</span>
+            <span>${point.trim()}${point.endsWith('.') || point.endsWith('!') || point.endsWith('?') ? '' : '.'}</span>
+          </div>
+        `).join('');
+      } else {
+        // Sinon, affichage normal mais tronqué si trop long
+        const truncatedDesc = description.length > 150 ? description.substring(0, 150) + '...' : description;
+        return `<span>${truncatedDesc}</span>`;
+      }
+    }
+  }
+
+  /**
+   * Formate une date pour l'affichage
    */
   formatDate(dateString) {
     if (!dateString) return null;
+
     try {
-      return new Date(dateString).toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'long'
-      });
-    } catch {
+      // Si c'est déjà au format YYYY, on le garde tel quel
+      if (/^\d{4}$/.test(dateString)) {
+        return dateString;
+      }
+
+      // Si c'est au format YYYY-MM, on formate en "Mois YYYY"
+      if (/^\d{4}-\d{2}$/.test(dateString)) {
+        const [year, month] = dateString.split('-');
+        const date = new Date(year, month - 1);
+        return date.toLocaleDateString('fr-FR', {
+          year: 'numeric',
+          month: 'long'
+        });
+      }
+
+      // Si c'est au format complet YYYY-MM-DD, on formate en "Mois YYYY"
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+
+        return date.toLocaleDateString('fr-FR', {
+          year: 'numeric',
+          month: 'long'
+        });
+      }
+
+      // Sinon, on retourne tel quel
+      return dateString;
+    } catch (error) {
       return dateString;
     }
   }
