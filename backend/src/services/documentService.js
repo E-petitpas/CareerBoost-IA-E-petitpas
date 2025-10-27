@@ -262,40 +262,45 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.4;
+            line-height: 1.3;
             color: #1f2937;
             background: #f8fafc;
-            padding: 20px;
+            padding: 0;
+            margin: 0;
         }
         .cv-container {
-            max-width: 210mm;
+            width: 210mm;
             height: 297mm;
             margin: 0 auto;
             background: white;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            border-radius: 8px;
+            border-radius: 0;
             overflow: hidden;
             display: flex;
         }
         @media print {
-            body { 
-                background: white; 
-                padding: 0; 
-            }
-            .cv-container { 
-                box-shadow: none; 
-                border-radius: 0; 
+            body {
+                background: white;
+                padding: 0;
                 margin: 0;
             }
+            .cv-container {
+                box-shadow: none;
+                border-radius: 0;
+                margin: 0;
+                page-break-after: avoid;
+            }
         }
-        
+
         /* Section gauche - Bleue */
         .left-section {
-            width: 35%;
+            width: 38%;
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
-            padding: 30px 20px;
+            padding: 15px 12px;
             position: relative;
+            display: flex;
+            flex-direction: column;
         }
         
         /* Formes décoratives */
@@ -324,16 +329,16 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
         .profile-photo {
             position: relative;
             z-index: 10;
-            margin-bottom: 25px;
+            margin-bottom: 12px;
             text-align: center;
         }
         .photo-container {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 15px;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 8px;
             border-radius: 50%;
             overflow: hidden;
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.3);
             background: rgba(255, 255, 255, 0.2);
         }
         .photo-container img {
@@ -350,19 +355,19 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
             color: rgba(255, 255, 255, 0.6);
         }
         .profile-name {
-            font-size: 1.1em;
+            font-size: 0.9em;
             font-weight: 500;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             letter-spacing: 0.2px;
             opacity: 0.85;
         }
         .profile-title {
-            font-size: 1.3em;
+            font-size: 1.05em;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 8px;
+            letter-spacing: 1.2px;
+            margin-top: 4px;
             position: relative;
             background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 50%, #ffffff 100%);
             -webkit-background-clip: text;
@@ -375,36 +380,36 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
         .profile-title::before {
             content: '';
             position: absolute;
-            top: -5px;
-            left: -10px;
-            right: -10px;
-            bottom: -5px;
+            top: -4px;
+            left: -8px;
+            right: -8px;
+            bottom: -4px;
             background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-            border-radius: 8px;
+            border-radius: 6px;
             z-index: -1;
         }
         
         /* Sections de la partie gauche */
         .info-section {
-            margin-bottom: 25px;
+            margin-bottom: 10px;
         }
         .section-title {
-            font-size: 1.1em;
+            font-size: 0.9em;
             font-weight: 700;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1.5px solid rgba(255, 255, 255, 0.4);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.6px;
             position: relative;
         }
         .section-title::after {
             content: '';
             position: absolute;
-            bottom: -2px;
+            bottom: -1.5px;
             left: 0;
-            width: 25px;
-            height: 2px;
+            width: 20px;
+            height: 1.5px;
             background: rgba(255, 255, 255, 0.8);
             border-radius: 1px;
         }
@@ -413,38 +418,39 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
         .contact-item {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
-            font-size: 0.85em;
+            margin-bottom: 4px;
+            font-size: 0.72em;
+            line-height: 1.3;
         }
         .contact-icon {
-            width: 16px;
-            height: 16px;
-            margin-right: 10px;
+            width: 12px;
+            height: 12px;
+            margin-right: 6px;
             flex-shrink: 0;
         }
-        
+
         /* Compétences avec barres */
         .skill-item {
-            margin-bottom: 12px;
+            margin-bottom: 5px;
         }
         .skill-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
         .skill-name {
-            font-size: 0.85em;
+            font-size: 0.72em;
             font-weight: 500;
         }
         .skill-bars {
             display: flex;
-            gap: 3px;
+            gap: 2px;
         }
         .skill-bar {
-            height: 6px;
-            width: 20px;
-            border-radius: 3px;
+            height: 5px;
+            width: 16px;
+            border-radius: 2px;
             background: rgba(255, 255, 255, 0.3);
         }
         .skill-bar.filled {
@@ -453,129 +459,131 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
 
         /* Catégories de compétences */
         .skills-category {
-            margin-bottom: 18px;
+            margin-bottom: 8px;
         }
         .category-title {
-            font-size: 0.8em;
+            font-size: 0.7em;
             font-weight: 700;
             color: #fff;
-            margin-bottom: 10px;
+            margin-bottom: 4px;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.5px;
             border-bottom: 1px solid rgba(37, 99, 235, 0.2);
-            padding-bottom: 4px;
+            padding-bottom: 2px;
         }
         .skills-list {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 3px;
         }
 
         /* Listes à puces */
         .bullet-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 3px;
         }
         .bullet-item {
             display: flex;
             align-items: center;
-            font-size: 0.85em;
+            font-size: 0.72em;
+            line-height: 1.3;
         }
         .bullet {
-            width: 6px;
-            height: 6px;
+            width: 4px;
+            height: 4px;
             background: white;
             border-radius: 50%;
-            margin-right: 10px;
+            margin-right: 6px;
             flex-shrink: 0;
         }
-        
+
         /* Section droite */
         .right-section {
-            width: 65%;
-            padding: 25px;
+            width: 62%;
+            padding: 15px 14px;
             background: #f8fafc;
         }
 
         /* Sections de contenu */
         .content-section {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .content-title {
-            font-size: 1.4em;
+            font-size: 1.05em;
             font-weight: 700;
             color: #2563eb;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #dbeafe;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #dbeafe;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.6px;
             position: relative;
         }
         .content-title::after {
             content: '';
             position: absolute;
-            bottom: -3px;
+            bottom: -2px;
             left: 0;
-            width: 50px;
-            height: 3px;
+            width: 35px;
+            height: 2px;
             background: linear-gradient(90deg, #2563eb, #3b82f6);
             border-radius: 2px;
         }
-        
+
         /* Expériences et formations */
         .experience-item, .education-item {
-            margin-bottom: 18px;
+            margin-bottom: 8px;
             position: relative;
-            padding: 15px;
+            padding: 8px 10px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            border-left: 3px solid #2563eb;
+            border-radius: 5px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            border-left: 2px solid #2563eb;
         }
         .item-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         .item-title {
             font-weight: 600;
             color: #1f2937;
-            font-size: 1em;
+            font-size: 0.85em;
+            line-height: 1.3;
         }
         .item-subtitle {
             color: #2563eb;
             font-weight: 500;
-            font-size: 0.9em;
-            margin-top: 2px;
+            font-size: 0.75em;
+            margin-top: 1px;
         }
         .item-date {
             color: #6b7280;
-            font-size: 0.85em;
+            font-size: 0.7em;
             white-space: nowrap;
-            margin-left: 15px;
+            margin-left: 8px;
         }
         .item-description {
             color: #4b5563;
-            font-size: 0.9em;
-            line-height: 1.5;
+            font-size: 0.75em;
+            line-height: 1.35;
         }
         .description-line {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 8px;
-            line-height: 1.6;
-            padding: 4px 0;
+            margin-bottom: 3px;
+            line-height: 1.4;
+            padding: 1px 0;
         }
         .bullet-point {
             color: #2563eb;
-            margin-right: 12px;
+            margin-right: 6px;
             flex-shrink: 0;
             font-weight: bold;
-            font-size: 1.2em;
-            margin-top: 2px;
+            font-size: 1em;
+            margin-top: 0px;
             text-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
         }
     </style>
@@ -636,11 +644,11 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
             <div class="info-section">
                 <h2 class="section-title">Compétences</h2>
                 ${aiContent?.skills_categories && Object.keys(aiContent.skills_categories).length > 0 ? `
-                    ${Object.entries(aiContent.skills_categories).map(([category, categorySkills]) => `
+                    ${Object.entries(aiContent.skills_categories).slice(0, 3).map(([category, categorySkills]) => `
                     <div class="skills-category">
                         <h3 class="category-title">${category}</h3>
                         <div class="skills-list">
-                            ${categorySkills.map(skill => `
+                            ${categorySkills.slice(0, 4).map(skill => `
                             <div class="skill-item">
                                 <div class="skill-header">
                                     <span class="skill-name">${skill.name}</span>
@@ -657,7 +665,7 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
                     `).join('')}
                 ` : `
                     <div class="skills-list">
-                        ${skills.slice(0, 8).map(skill => `
+                        ${skills.slice(0, 6).map(skill => `
                         <div class="skill-item">
                             <div class="skill-header">
                                 <span class="skill-name">${skill.skills?.display_name || 'Compétence'}</span>
@@ -673,12 +681,12 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
                 `}
             </div>
             ` : ''}
-            
+
             <!-- Qualités -->
             <div class="info-section">
                 <h2 class="section-title">Qualités</h2>
                 <div class="bullet-list">
-                    ${(aiContent?.qualities || ['Dynamique', 'Ponctuel(le)', 'Sérieux(se)', 'Motivé(e)']).map(quality => `
+                    ${(aiContent?.qualities || ['Dynamique', 'Ponctuel(le)', 'Sérieux(se)', 'Motivé(e)']).slice(0, 4).map(quality => `
                     <div class="bullet-item">
                         <div class="bullet"></div>
                         <span>${quality}</span>
@@ -702,7 +710,7 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
             ${(aiContent?.experiences && aiContent.experiences.length > 0) || (experiences && experiences.length > 0) ? `
             <div class="content-section">
                 <h2 class="content-title">Expériences Professionnelles</h2>
-                ${(aiContent?.experiences && aiContent.experiences.length > 0 ? aiContent.experiences : experiences).slice(0, 3).map(exp => `
+                ${(aiContent?.experiences && aiContent.experiences.length > 0 ? aiContent.experiences : experiences).slice(0, 2).map(exp => `
                 <div class="experience-item">
                     <div class="item-header">
                         <div>
@@ -713,7 +721,7 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
                     </div>
                     ${exp.description ? `
                     <div class="item-description">
-                        ${this.formatDescriptionAsBullets(exp.description)}
+                        ${this.formatDescriptionAsBullets(exp.description, 2)}
                     </div>
                     ` : ''}
                 </div>
@@ -725,7 +733,7 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
             ${(aiContent?.educations && aiContent.educations.length > 0) || (educations && educations.length > 0) ? `
             <div class="content-section">
                 <h2 class="content-title">Formation</h2>
-                ${(aiContent?.educations && aiContent.educations.length > 0 ? aiContent.educations : educations).slice(0, 3).map(edu => `
+                ${(aiContent?.educations && aiContent.educations.length > 0 ? aiContent.educations : educations).slice(0, 2).map(edu => `
                 <div class="education-item">
                     <div class="item-header">
                         <div>
@@ -735,7 +743,7 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
                         <div class="item-date">${edu.period || `${this.formatDate(edu.start_date)} - ${this.formatDate(edu.end_date) || 'En cours'}`}</div>
                     </div>
                     ${edu.description ? `
-                    <div class="item-description">${edu.description}</div>
+                    <div class="item-description">${edu.description.length > 120 ? edu.description.substring(0, 120) + '...' : edu.description}</div>
                     ` : ''}
                 </div>
                 `).join('')}
@@ -860,9 +868,9 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
   }
 
   /**
-   * Formate une description en puces (maximum 3 puces pour tenir sur une page)
+   * Formate une description en puces (maximum 2 puces pour tenir sur une page)
    */
-  formatDescriptionAsBullets(description) {
+  formatDescriptionAsBullets(description, maxBullets = 2) {
     if (!description) return '';
 
     // Diviser le texte en phrases intelligemment
@@ -871,17 +879,21 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
       .map(s => s.trim())
       .filter(s => s.length > 15); // Ignorer les phrases trop courtes
 
-    // Limiter à 3 puces maximum pour tenir sur une page
-    sentences = sentences.slice(0, 3);
+    // Limiter au nombre de puces maximum
+    sentences = sentences.slice(0, maxBullets);
 
     // Si on a plusieurs phrases, les afficher en puces
     if (sentences.length > 1) {
-      return sentences.map(sentence => `
+      return sentences.map(sentence => {
+        // Tronquer les phrases trop longues
+        const truncated = sentence.length > 100 ? sentence.substring(0, 100) + '...' : sentence;
+        return `
         <div class="description-line">
           <span class="bullet-point">•</span>
-          <span>${sentence.trim()}${sentence.endsWith('.') || sentence.endsWith('!') || sentence.endsWith('?') ? '' : '.'}</span>
+          <span>${truncated.trim()}${truncated.endsWith('.') || truncated.endsWith('!') || truncated.endsWith('?') || truncated.endsWith('...') ? '' : '.'}</span>
         </div>
-      `).join('');
+      `;
+      }).join('');
     } else {
       // Si c'est une seule phrase longue, la diviser par des mots-clés
       const keywords = [
@@ -897,9 +909,9 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
       keywords.forEach(keyword => {
         const regex = new RegExp(`(${keyword}[^.]*?(?=[A-Z]|$))`, 'gi');
         const matches = currentText.match(regex);
-        if (matches && bulletPoints.length < 3) { // Limiter à 3 puces
+        if (matches && bulletPoints.length < maxBullets) {
           matches.forEach(match => {
-            if (bulletPoints.length < 3) {
+            if (bulletPoints.length < maxBullets) {
               bulletPoints.push(match.trim());
               currentText = currentText.replace(match, '').trim();
             }
@@ -909,15 +921,18 @@ generateCVHTML({ user, profile, educations, experiences, skills, aiContent }) {
 
       // Si on a trouvé des points, les afficher en puces
       if (bulletPoints.length > 1) {
-        return bulletPoints.slice(0, 3).map(point => `
+        return bulletPoints.slice(0, maxBullets).map(point => {
+          const truncated = point.length > 100 ? point.substring(0, 100) + '...' : point;
+          return `
           <div class="description-line">
             <span class="bullet-point">•</span>
-            <span>${point.trim()}${point.endsWith('.') || point.endsWith('!') || point.endsWith('?') ? '' : '.'}</span>
+            <span>${truncated.trim()}${truncated.endsWith('.') || truncated.endsWith('!') || truncated.endsWith('?') || truncated.endsWith('...') ? '' : '.'}</span>
           </div>
-        `).join('');
+        `;
+        }).join('');
       } else {
         // Sinon, affichage normal mais tronqué si trop long
-        const truncatedDesc = description.length > 150 ? description.substring(0, 150) + '...' : description;
+        const truncatedDesc = description.length > 100 ? description.substring(0, 100) + '...' : description;
         return `<span>${truncatedDesc}</span>`;
       }
     }
