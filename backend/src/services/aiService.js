@@ -38,38 +38,73 @@ COMPÉTENCES:
 ${skills && skills.length > 0 ? skills.map(s => `- ${s.skills?.display_name || 'Compétence'}`).join('\n') : 'Aucune compétence renseignée'}
 
 FORMATIONS:
-${educations && educations.length > 0 ? educations.map(e => `- ${e.degree || 'Formation'} en ${e.field || 'Domaine non spécifié'} (${e.start_date || 'Date non spécifiée'}-${e.end_date || 'En cours'})`).join('\n') : 'Aucune formation renseignée'}
+${educations && educations.length > 0 ? educations.map(e => `- Diplôme: ${e.degree || 'Formation'} en ${e.field || 'Domaine non spécifié'}
+  École: ${e.school || 'École non spécifiée'}
+  Période: ${e.start_date || 'Date non spécifiée'} - ${e.end_date || 'En cours'}
+  Description: ${e.description || 'Pas de description'}`).join('\n') : 'Aucune formation renseignée'}
 
 EXPÉRIENCES:
-${experiences && experiences.length > 0 ? experiences.map(e => `- ${e.role_title || e.position || 'Poste'} chez ${e.company || 'Entreprise'} (${e.start_date || 'Date non spécifiée'} - ${e.end_date || 'En cours'}): ${e.description || 'Pas de description'}`).join('\n') : 'Aucune expérience renseignée'}
+${experiences && experiences.length > 0 ? experiences.map(e => `- Poste: ${e.role_title || e.position || 'Poste'}
+  Entreprise: ${e.company || 'Entreprise'}
+  Période: ${e.start_date || 'Date non spécifiée'} - ${e.end_date || 'En cours'}
+  Description: ${e.description || 'Pas de description'}`).join('\n') : 'Aucune expérience renseignée'}
 
 INSTRUCTIONS:
-1. Crée un résumé professionnel accrocheur de 3-4 lignes
-2. Organise les compétences par catégories pertinentes
-3. Reformule les expériences pour mettre en valeur les réalisations
-4. Ajoute des mots-clés pertinents pour le secteur
-5. Garde un ton professionnel mais moderne
-6. Retourne uniquement le contenu textuel, pas de formatage HTML
+- Utilise EXACTEMENT les noms d'entreprises et d'écoles fournis dans les données ci-dessus
+- Si une école s'appelle "Université de Paris", écris "Université de Paris", pas "VRAI nom de l'école"
+- Si une entreprise s'appelle "Google", écris "Google", pas "Nom de l'entreprise du candidat"
+- IMPORTANT: Le CV doit tenir sur UNE SEULE PAGE - sois concis et synthétique
+- Limite les descriptions à 2-3 points clés maximum par expérience
+- Résumé professionnel: maximum 2 phrases courtes et percutantes
+- Compétences: organise en 3-4 catégories maximum (Langages, Frameworks, Outils, Bases de données, etc.)
+- Maximum 2-3 compétences par catégorie pour tenir sur une page
+- Expériences: maximum 3 expériences les plus récentes/importantes
+- Formations: maximum 2-3 formations les plus pertinentes
+- Descriptions: phrases courtes, mots-clés techniques, résultats concrets
+- Formate les dates de manière lisible (ex: "Jan 2020 - Déc 2023")
 
-Format de réponse:
-RÉSUMÉ PROFESSIONNEL:
-[résumé de 3-4 lignes]
-
-COMPÉTENCES:
-[compétences organisées par catégories]
-
-EXPÉRIENCES PROFESSIONNELLES:
-[expériences reformulées avec réalisations]
-
-FORMATIONS:
-[formations avec détails pertinents]`;
+Retourne UNIQUEMENT un objet JSON valide avec cette structure:
+{
+  "profile_summary": "Résumé professionnel concis en 1-2 phrases maximum",
+  "skills_categories": {
+    "Langages de programmation": [
+      {"name": "JavaScript", "level": 4},
+      {"name": "Python", "level": 3}
+    ],
+    "Frameworks & Librairies": [
+      {"name": "React", "level": 4},
+      {"name": "Node.js", "level": 3}
+    ],
+    "Outils & Technologies": [
+      {"name": "Git", "level": 4},
+      {"name": "Docker", "level": 3}
+    ]
+  },
+  "experiences": [
+    {
+      "title": "Titre du poste",
+      "company": "Nom exact de l'entreprise",
+      "period": "Période courte (ex: Jan 2020 - Déc 2023)",
+      "description": "2-3 réalisations clés séparées par des points. Développement d'applications web modernes. Optimisation des performances et qualité du code. Collaboration équipe technique."
+    }
+  ],
+  "educations": [
+    {
+      "degree": "Diplôme exact",
+      "school": "Nom exact de l'école",
+      "period": "Période courte",
+      "description": "Description courte si pertinente (optionnel)"
+    }
+  ],
+  "qualities": ["Qualité 1", "Qualité 2", "Qualité 3", "Qualité 4"]
+}`;
 
       const response = await this.openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
-            content: "Tu es un expert en rédaction de CV qui aide les candidats à créer des CV professionnels et attractifs."
+            content: "Tu es un expert en rédaction de CV qui aide les candidats à créer des CV professionnels et attractifs. Tu retournes toujours du JSON valide."
           },
           {
             role: "user",
@@ -80,7 +115,16 @@ FORMATIONS:
         temperature: 0.7
       });
 
-      return response.choices[0].message.content;
+      const content = response.choices[0].message.content;
+
+      try {
+        // Parser le JSON retourné par l'IA
+        const aiData = JSON.parse(content);
+        return aiData;
+      } catch (parseError) {
+        console.warn('Erreur parsing JSON IA, retour du contenu brut:', parseError);
+        return { raw_content: content };
+      }
     } catch (error) {
       console.error('Erreur génération CV IA:', error);
       throw new Error('Erreur lors de la génération du CV avec l\'IA');
