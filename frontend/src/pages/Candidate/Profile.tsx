@@ -42,7 +42,7 @@ const CandidateProfile: React.FC = () => {
     { id: 'skills', name: 'Compétences', icon: StarIcon },
     { id: 'experiences', name: 'Expériences', icon: BriefcaseIcon },
     { id: 'education', name: 'Formations', icon: AcademicCapIcon },
-    { id: 'documents', name: 'CV & Lettres', icon: DocumentTextIcon },
+    { id: 'documents', name: 'CV', icon: DocumentTextIcon },
     { id: 'preferences', name: 'Préférences', icon: CogIcon },
   ];
 
