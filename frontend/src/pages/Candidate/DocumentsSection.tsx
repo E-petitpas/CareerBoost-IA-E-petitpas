@@ -154,7 +154,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
       <div className="flex justify-between items-center mb-6">
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            CV & Lettres de motivation
+            CV
           </h3>
           <p className="text-sm text-gray-600">
             Gérez vos documents professionnels et utilisez l'IA pour les optimiser.
@@ -337,9 +337,8 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
         {/* Contenu principal du CV */}
         <div className="flex-1">
           {(cvUrl || profile?.cv_url) ? (
-            // Affichage direct du CV
+            // Affichage du contenu IA ou du PDF
             <div className="h-[800px] bg-gray-50">
-              {/* Tous les CVs sont maintenant en PDF */}
               <div className="relative h-full bg-white overflow-hidden">
                 {/* Badge de statut en haut */}
                 <div className="absolute top-4 left-4 z-10">

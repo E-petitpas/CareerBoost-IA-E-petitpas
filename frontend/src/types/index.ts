@@ -47,6 +47,8 @@ export interface CandidateProfile {
   candidate_skills: CandidateSkill[];
   experiences?: Experience[];
   educations?: Education[];
+  ai_content?: string;
+  cv_url?: string;
 }
 
 export interface CandidateSkill {
