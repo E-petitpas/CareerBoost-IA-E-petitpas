@@ -259,9 +259,29 @@ class ApiService {
     return response.data;
   }
 
+  // Méthodes pour la photo de profil
+  async uploadProfilePhoto(file: File): Promise<{ photo_url: string; message: string }> {
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    const response = await this.api.post('/candidate/profile/photo', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+
+  async deleteProfilePhoto(): Promise<{ message: string }> {
+    const response = await this.api.delete('/candidate/profile/photo');
+    return response.data;
+  }
+
   // Méthodes pour la génération de CV/LM
   async generateCV(): Promise<{ cv_url: string; message: string }> {
-    const response = await this.api.post('/candidate/cv/generate');
+    const response = await this.api.post('/candidate/cv/generate', {}, {
+      timeout: 60000, // 60 secondes pour la génération de CV
+    });
     return response.data;
   }
 

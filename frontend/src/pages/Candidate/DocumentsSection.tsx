@@ -21,6 +21,8 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
   const [cvUrl, setCvUrl] = useState<string | null>(profile?.cv_url || null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationStep, setGenerationStep] = useState('');
 
   // Mettre à jour cvUrl quand le profil change
   useEffect(() => {
@@ -40,17 +42,65 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
     setIsGeneratingCV(true);
     setError(null);
     setSuccess(null);
+    setGenerationProgress(0);
+    setGenerationStep('Initialisation...');
 
     try {
-      const response = await apiService.generateCV();
+      // Simulation du progrès pour une meilleure UX
+      const progressSteps = [
+        { progress: 10, step: 'Analyse de votre profil...' },
+        { progress: 30, step: 'Génération du contenu avec IA...' },
+        { progress: 60, step: 'Mise en forme du document...' },
+        { progress: 80, step: 'Finalisation du CV...' },
+        { progress: 95, step: 'Dernières vérifications...' }
+      ];
+
+      // Démarrer la génération
+      const generationPromise = apiService.generateCV();
+
+      // Simuler le progrès pendant que la génération se fait
+      let currentStep = 0;
+      const progressInterval = setInterval(() => {
+        if (currentStep < progressSteps.length) {
+          setGenerationProgress(progressSteps[currentStep].progress);
+          setGenerationStep(progressSteps[currentStep].step);
+          currentStep++;
+        }
+      }, 8000); // Changer d'étape toutes les 8 secondes
+
+      const response = await generationPromise;
+
+      // Nettoyer l'intervalle
+      clearInterval(progressInterval);
+
+      // Finaliser
+      setGenerationProgress(100);
+      setGenerationStep('CV généré avec succès !');
+
       setCvUrl(response.cv_url);
       setSuccess('✨ CV généré avec succès ! Votre profil a été transformé en un CV professionnel.');
       onUpdate(); // Rafraîchir le profil
+
     } catch (err: any) {
       console.error('Erreur génération CV:', err);
-      setError(err.response?.data?.error || '❌ Erreur lors de la génération du CV. Veuillez réessayer.');
+
+      let errorMessage = '❌ Erreur lors de la génération du CV.';
+
+      if (err.code === 'ECONNABORTED') {
+        errorMessage = '⏱️ La génération prend plus de temps que prévu. Veuillez patienter et réessayer dans quelques instants.';
+      } else if (err.response?.status === 500) {
+        errorMessage = '🔧 Erreur serveur lors de la génération. Notre équipe technique a été notifiée.';
+      } else if (err.response?.data?.error) {
+        errorMessage = `❌ ${err.response.data.error}`;
+      }
+
+      setError(errorMessage);
+      setGenerationStep('Erreur lors de la génération');
+
     } finally {
       setIsGeneratingCV(false);
+      setGenerationProgress(0);
+      setGenerationStep('');
     }
   };
 
@@ -119,7 +169,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
             {isGeneratingCV ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Génération...
+                {generationStep || 'Génération...'}
               </>
             ) : (
               <>
@@ -139,8 +189,37 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-red-800">{error}</p>
+            <div className="ml-3 flex-1">
+              <p className="text-sm font-medium text-red-800 mb-2">{error}</p>
+
+              {/* Conseils selon le type d'erreur */}
+              {error.includes('temps que prévu') && (
+                <div className="text-xs text-red-700 bg-red-100 p-2 rounded">
+                  <p className="font-medium mb-1">💡 Conseils :</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Vérifiez votre connexion internet</li>
+                    <li>Assurez-vous que votre profil est complet</li>
+                    <li>Réessayez dans quelques minutes</li>
+                  </ul>
+                </div>
+              )}
+
+              {error.includes('serveur') && (
+                <div className="text-xs text-red-700 bg-red-100 p-2 rounded">
+                  <p className="font-medium mb-1">🔧 Problème technique temporaire</p>
+                  <p>Nos équipes travaillent à résoudre ce problème. Réessayez dans quelques minutes.</p>
+                </div>
+              )}
+
+              <div className="mt-3">
+                <button
+                  onClick={handleGenerateCV}
+                  disabled={isGeneratingCV}
+                  className="text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  Réessayer
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -155,6 +234,37 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ profile, onUpdate }
             <div className="ml-3">
               <p className="text-sm font-medium text-green-800">{success}</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Barre de progression pendant la génération */}
+      {isGeneratingCV && (
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+          <div className="flex items-center mb-3">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-3"></div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900">{generationStep}</p>
+              <p className="text-xs text-blue-700 mt-1">
+                Cette opération peut prendre jusqu'à 1 minute. Merci de patienter...
+              </p>
+            </div>
+          </div>
+
+          {/* Barre de progression */}
+          <div className="w-full bg-blue-200 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-1000 ease-out"
+              style={{ width: `${generationProgress}%` }}
+            ></div>
+          </div>
+
+          {/* Pourcentage */}
+          <div className="flex justify-between items-center mt-2">
+            <span className="text-xs text-blue-600">{generationProgress}%</span>
+            <span className="text-xs text-blue-600">
+              {generationProgress < 100 ? 'En cours...' : 'Terminé !'}
+            </span>
           </div>
         </div>
       )}
