@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -82,21 +83,25 @@ app.use('/api/notifications', authenticateToken, notificationRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/cv-analysis', authenticateToken, cvAnalysisRoutes);
 
+
 // Static files for uploads with CORS headers
 app.use('/uploads', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production'
-    ? 'https://your-frontend-domain.com'
-    : 'http://localhost:3000');
-  res.header('Access-Control-Allow-Methods', 'GET');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Origin', '*'); // Permettre toutes les origines pour les images
+  res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
 
   // ✅ Permettre l’affichage en iframe
   res.header('X-Frame-Options', 'ALLOWALL');
 
   // ✅ Optionnel : certains navigateurs exigent aussi ce header
   res.header('Content-Security-Policy', "frame-ancestors *");
+
+  // Log pour déboguer
+  console.log(`📁 Static file request: ${req.method} ${req.url} from ${req.get('Origin') || 'direct'}`);
+
   next();
-}, express.static('uploads'));
+}, express.static(path.join(__dirname, '..', 'uploads')));
 
 // 404 handler
 app.use('*', (req, res) => {
